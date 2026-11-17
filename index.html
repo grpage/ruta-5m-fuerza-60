@@ -1,0 +1,2321 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#090d16" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Ruta 5M 60+" />
+  <title>Ruta 5M & Fuerza 60+ | Gerardo Pagés</title>
+
+  <!-- Inline SVG App Icon para iOS / PWA -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%23090d16'/%3E%3Ccircle cx='90' cy='90' r='68' fill='none' stroke='%2310b981' stroke-width='12'/%3E%3Ctext x='90' y='86' font-family='sans-serif' font-weight='900' font-size='38' fill='%23ffffff' text-anchor='middle'%3E5M%3C/text%3E%3Ctext x='90' y='122' font-family='sans-serif' font-weight='800' font-size='24' fill='%2310b981' text-anchor='middle'%3E60%2B%3C/text%3E%3C/svg%3E" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%23090d16'/%3E%3Ccircle cx='90' cy='90' r='68' fill='none' stroke='%2310b981' stroke-width='12'/%3E%3Ctext x='90' y='86' font-family='sans-serif' font-weight='900' font-size='38' fill='%23ffffff' text-anchor='middle'%3E5M%3C/text%3E%3Ctext x='90' y='122' font-family='sans-serif' font-weight='800' font-size='24' fill='%2310b981' text-anchor='middle'%3E60%2B%3C/text%3E%3C/svg%3E" />
+
+  <!-- Web App Manifest embebido para instalación nativa PWA -->
+  <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Ruta%205M%20%26%20Fuerza%2060%2B%22%2C%22short_name%22%3A%22Ruta%205M%2060%2B%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23090d16%22%2C%22theme_color%22%3A%22%23090d16%22%2C%22orientation%22%3A%22portrait%22%7D" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            obsidian: '#090d16',
+            card: '#111827',
+            cardHover: '#1a2333',
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Ajustes nativos para sensación de app móvil (iOS Safe Areas y scroll limpio) */
+    body {
+      background-color: #090d16;
+      color: #f8fafc;
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior-y: none;
+      padding-top: env(safe-area-inset-top);
+    }
+    .safe-bottom-nav {
+      padding-bottom: calc(0.375rem + env(safe-area-inset-bottom));
+    }
+    .safe-main-bottom {
+      padding-bottom: calc(7rem + env(safe-area-inset-bottom));
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    input[type="range"] {
+      accent-color: #10b981;
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.03); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .animate-pulse-subtle {
+      animation: pulse-ring 2.5s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-emerald-500 selection:text-slate-950">
+
+  <!-- Barra de Notificación Toast (Reemplazo seguro de alert/confirm) -->
+  <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md pointer-events-none flex flex-col gap-2"></div>
+
+  <!-- Modal de Confirmación / Importación -->
+  <div id="confirm-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-6 shadow-2xl">
+      <h3 id="modal-title" class="text-lg font-bold text-white mb-2">Confirmar acción</h3>
+      <p id="modal-desc" class="text-sm text-slate-300 mb-6">¿Estás seguro de continuar?</p>
+      <div class="flex gap-3 justify-end">
+        <button id="modal-cancel" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-sm transition">Cancelar</button>
+        <button id="modal-confirm" class="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm transition">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pantalla de Login Sencillo -->
+  <div id="auth-overlay" class="fixed inset-0 z-40 bg-obsidian flex items-center justify-center p-4">
+    <div class="bg-card border border-slate-800 rounded-3xl max-w-sm w-full p-6 sm:p-8 shadow-2xl space-y-6">
+      <div class="flex flex-col items-center text-center">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/25 mb-3">
+          <svg class="w-8 h-8 text-slate-950" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <h2 class="text-xl font-black text-white tracking-tight">Ruta 5M & Fuerza 60+</h2>
+        <p class="text-xs text-slate-400 mt-1">Acceso personal • Gerardo Pagés</p>
+      </div>
+
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label for="login-user" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Usuario</label>
+          <input
+            type="text"
+            id="login-user"
+            autocomplete="username"
+            required
+            placeholder="gerardo"
+            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+          />
+        </div>
+
+        <div>
+          <label for="login-pass" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Clave de Acceso</label>
+          <input
+            type="password"
+            id="login-pass"
+            autocomplete="current-password"
+            required
+            placeholder="••••"
+            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+          />
+        </div>
+
+        <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer select-none">
+          <input type="checkbox" id="login-remember" checked class="rounded border-slate-700 bg-slate-900 text-emerald-500 focus:ring-0" />
+          <span>Recordar sesión en este iPhone / dispositivo</span>
+        </label>
+
+        <p id="login-error" class="hidden text-xs font-bold text-rose-400 text-center bg-rose-950/50 border border-rose-500/30 rounded-xl py-2 px-3">
+          Usuario o clave incorrectos
+        </p>
+
+        <button type="submit" class="w-full py-3.5 px-5 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-[0.99] text-slate-950 font-extrabold text-sm shadow-lg shadow-emerald-500/20 transition">
+          Ingresar a la App →
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Encabezado Principal Sticky -->
+  <header class="sticky top-0 z-30 bg-obsidian/90 backdrop-blur-md border-b border-slate-800/80">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 shrink-0">
+          <svg class="w-6 h-6 text-slate-950" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white leading-none">Ruta 5M & Fuerza 60+</h1>
+            <span id="wakelock-indicator" class="hidden px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-500/15 text-amber-400 border border-amber-500/30 rounded-full" title="Pantalla activa durante el cronómetro">☀️ Pantalla Activa</span>
+            <span class="hidden sm:inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded-full">PWA Ready</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Gerardo Pagés • 61 años • 1.76m / 78kg</p>
+        </div>
+      </div>
+
+      <!-- Selector de Semana Global + Respaldo -->
+      <div class="flex items-center gap-2">
+        <div class="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl px-2.5 py-1.5">
+          <label for="global-week-select" class="text-[11px] font-semibold text-slate-400 mr-1.5 uppercase">Semana</label>
+          <select id="global-week-select" class="bg-transparent text-emerald-400 font-extrabold text-sm focus:outline-none cursor-pointer">
+            <option value="1" class="bg-slate-900">1 / 8</option>
+            <option value="2" class="bg-slate-900">2 / 8</option>
+            <option value="3" class="bg-slate-900">3 / 8</option>
+            <option value="4" class="bg-slate-900">4 / 8 ⚡</option>
+            <option value="5" class="bg-slate-900">5 / 8</option>
+            <option value="6" class="bg-slate-900">6 / 8</option>
+            <option value="7" class="bg-slate-900">7 / 8</option>
+            <option value="8" class="bg-slate-900">8 / 8 🏆</option>
+          </select>
+        </div>
+
+        <button onclick="exportBackup()" title="Exportar respaldo JSON" class="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-emerald-400 transition" aria-label="Exportar JSON">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+        </button>
+
+        <label title="Importar respaldo JSON" class="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-amber-400 transition cursor-pointer" aria-label="Importar JSON">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          </svg>
+          <input type="file" id="import-file-input" accept=".json" class="hidden" onchange="importBackup(event)" />
+        </label>
+
+        <button onclick="lockSession()" title="Cerrar sesión / Bloquear" class="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-rose-400 transition" aria-label="Bloquear sesión">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Navegación Desktop & Tablet (4 Pestañas) -->
+    <nav class="hidden md:block border-t border-slate-800/60 bg-slate-950/60">
+      <div class="max-w-5xl mx-auto px-4 flex gap-2 py-2">
+        <button data-tab="dashboard" class="tab-btn flex-1 py-2.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition">
+          <span>📊 Dashboard & Fatiga</span>
+        </button>
+        <button data-tab="running" class="tab-btn flex-1 py-2.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition">
+          <span>🏃‍♂️ Plan Ruta 5M</span>
+        </button>
+        <button data-tab="strength" class="tab-btn flex-1 py-2.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition">
+          <span>🏋️‍♂️ Fuerza 60+ Hombros</span>
+        </button>
+        <button data-tab="guide" class="tab-btn flex-1 py-2.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition">
+          <span>🛡️ Guía Preventiva</span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Contenido Principal -->
+  <main class="flex-1 max-w-5xl w-full mx-auto px-4 pt-5 safe-main-bottom md:pb-12">
+
+    <!-- ========================================================= -->
+    <!-- PESTAÑA 1: DASHBOARD & FATIGA                             -->
+    <!-- ========================================================= -->
+    <section id="tab-dashboard" class="tab-panel space-y-6">
+
+      <!-- Banner Alerta Preventiva Automática -->
+      <div id="preventive-alert-banner" class="hidden rounded-2xl p-4 sm:p-5 border-2 shadow-lg transition-all">
+        <div class="flex items-start gap-3.5">
+          <div id="alert-icon-box" class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div class="flex-1">
+            <h2 id="alert-title" class="font-extrabold text-base sm:text-lg tracking-tight">Protocolo de Recuperación Activa Activado</h2>
+            <p id="alert-message" class="text-sm mt-1 leading-relaxed"></p>
+            <div class="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
+              <span class="px-2.5 py-1 rounded-lg bg-black/30">🚫 Pausar Sprints 10×100m</span>
+              <span class="px-2.5 py-1 rounded-lg bg-black/30">📉 Reducir cargas pesas -30%</span>
+              <span class="px-2.5 py-1 rounded-lg bg-black/30">🧘‍♂️ 20 min Movilidad + Hidratación</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPIs Principales -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <!-- KPI 1: Progreso hacia 5 Millas -->
+        <div class="bg-card border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Meta 5 Millas</span>
+            <span class="text-xs font-mono font-bold text-emerald-400" id="kpi-miles-pct">30%</span>
+          </div>
+          <div class="my-2">
+            <div class="flex items-baseline gap-1.5">
+              <span id="kpi-current-miles" class="text-2xl sm:text-3xl font-black text-white font-mono">1.5</span>
+              <span class="text-xs font-semibold text-slate-400">/ 5.0 mi (8.05 km)</span>
+            </div>
+          </div>
+          <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+            <div id="kpi-miles-bar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500" style="width: 30%"></div>
+          </div>
+        </div>
+
+        <!-- KPI 2: Sesiones Completadas (Carrera + Fuerza) -->
+        <div class="bg-card border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Sesiones Totales</span>
+            <span id="kpi-sessions-pct" class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 text-[11px] font-bold">0%</span>
+          </div>
+          <div class="my-2">
+            <div class="flex items-baseline gap-1.5">
+              <span id="kpi-sessions-done" class="text-2xl sm:text-3xl font-black text-white font-mono">0</span>
+              <span id="kpi-sessions-total" class="text-xs font-semibold text-slate-400">/ 48 planificadas</span>
+            </div>
+          </div>
+          <p id="kpi-sessions-breakdown" class="text-xs text-slate-400">0/24 Carrera • 0/24 Fuerza</p>
+        </div>
+
+        <!-- KPI 3: Semana Actual -->
+        <div class="bg-card border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Fase Actual</span>
+            <span id="kpi-week-badge" class="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400 text-[11px] font-bold">Sem 1</span>
+          </div>
+          <div class="my-2">
+            <p id="kpi-phase-title" class="text-base sm:text-lg font-extrabold text-white leading-tight">Adaptación Tendinosa</p>
+          </div>
+          <p id="kpi-phase-sub" class="text-xs text-slate-400 truncate">Base aeróbica sin impacto excesivo</p>
+        </div>
+
+        <!-- KPI 4: Índice de Preparación (Readiness Score) -->
+        <div class="bg-card border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Preparación Hoy</span>
+            <span id="kpi-readiness-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+          </div>
+          <div class="my-2 flex items-baseline gap-2">
+            <p id="kpi-readiness-label" class="text-2xl sm:text-3xl font-black text-emerald-400">Óptima</p>
+            <span id="kpi-readiness-score" class="text-xs font-mono font-bold text-slate-400">92%</span>
+          </div>
+          <p id="kpi-readiness-sub" class="text-xs text-slate-400">Listo para entrenar según plan</p>
+        </div>
+      </div>
+
+      <!-- Acciones Rápidas para ir directo a la sesión del día -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <button onclick="switchTab('running')" class="bg-slate-900/90 hover:bg-slate-800 border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between transition text-left">
+          <div>
+            <span class="text-[11px] font-bold uppercase text-emerald-400 block">Plan de Carrera</span>
+            <span id="quick-run-status" class="text-sm font-extrabold text-white">Ver sesiones de la semana</span>
+          </div>
+          <span class="text-slate-400 text-lg">→</span>
+        </button>
+        <button onclick="goToSprintTimer()" class="bg-slate-900/90 hover:bg-slate-800 border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between transition text-left">
+          <div>
+            <span class="text-[11px] font-bold uppercase text-amber-400 block">Temporizador 10×100m</span>
+            <span id="quick-sprint-status" class="text-sm font-extrabold text-white">Cronómetro + Pausa 5:00</span>
+          </div>
+          <span class="text-slate-400 text-lg">⏱️</span>
+        </button>
+        <button onclick="switchTab('strength')" class="bg-slate-900/90 hover:bg-slate-800 border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between transition text-left">
+          <div>
+            <span class="text-[11px] font-bold uppercase text-sky-400 block">Fuerza 60+ Hombros</span>
+            <span id="quick-strength-status" class="text-sm font-extrabold text-white">Rutinas A, B y C</span>
+          </div>
+          <span class="text-slate-400 text-lg">🏋️‍♂️</span>
+        </button>
+      </div>
+
+      <!-- Registro Diario de Bienestar y Fatiga -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-7 bg-card border border-slate-800 rounded-2xl p-5 sm:p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-lg font-extrabold text-white">Chequeo Diario de Bienestar & Fatiga</h2>
+              <p class="text-xs text-slate-400 mt-0.5">Evalúa tu estado antes de correr o levantar pesas (regla preventiva +60 años)</p>
+            </div>
+            <span id="today-date-label" class="text-xs font-mono font-semibold px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300"></span>
+          </div>
+
+          <form id="wellness-form" class="space-y-5">
+            <!-- Fatiga Muscular -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5">
+              <div class="flex justify-between items-center mb-1.5">
+                <label for="input-fatigue" class="text-sm font-bold text-slate-200">1. Fatiga Muscular General</label>
+                <span id="val-fatigue" class="font-mono font-extrabold text-base px-2.5 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-400">3 / 10</span>
+              </div>
+              <input type="range" id="input-fatigue" min="1" max="10" value="3" class="w-full h-2 bg-slate-700 rounded-lg cursor-pointer" />
+              <div class="flex justify-between text-[11px] text-slate-500 mt-1">
+                <span>1: Muy fresco</span>
+                <span>5: Moderado</span>
+                <span>7+: Alerta fatiga</span>
+              </div>
+            </div>
+
+            <!-- Calidad de Sueño -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5">
+              <div class="flex justify-between items-center mb-1.5">
+                <label for="input-sleep" class="text-sm font-bold text-slate-200">2. Calidad de Sueño y Recuperación</label>
+                <span id="val-sleep" class="font-mono font-extrabold text-base px-2.5 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-400">8 / 10</span>
+              </div>
+              <input type="range" id="input-sleep" min="1" max="10" value="8" class="w-full h-2 bg-slate-700 rounded-lg cursor-pointer" />
+              <div class="flex justify-between text-[11px] text-slate-500 mt-1">
+                <span>1: Mal descanso</span>
+                <span>5: Regular</span>
+                <span>10: Reparador</span>
+              </div>
+            </div>
+
+            <!-- Dolor Articular Específico (Hombros, Rodillas, Tendón de Aquiles) -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 space-y-3.5">
+              <p class="text-sm font-bold text-slate-200">3. Molestia o Dolor Articular (0 = Sin dolor, 10 = Dolor agudo)</p>
+
+              <!-- Hombros -->
+              <div>
+                <div class="flex justify-between text-xs font-semibold mb-1">
+                  <span class="text-slate-300">🦴 Hombros / Manguito Rotador</span>
+                  <span id="val-pain-shoulder" class="font-mono font-bold px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-400">1 / 10</span>
+                </div>
+                <input type="range" id="input-pain-shoulder" min="0" max="10" value="1" class="w-full h-1.5 bg-slate-700 rounded-lg cursor-pointer" />
+              </div>
+
+              <!-- Rodillas -->
+              <div>
+                <div class="flex justify-between text-xs font-semibold mb-1">
+                  <span class="text-slate-300">🦵 Rodillas</span>
+                  <span id="val-pain-knee" class="font-mono font-bold px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-400">1 / 10</span>
+                </div>
+                <input type="range" id="input-pain-knee" min="0" max="10" value="1" class="w-full h-1.5 bg-slate-700 rounded-lg cursor-pointer" />
+              </div>
+
+              <!-- Tendón de Aquiles / Pantorrillas -->
+              <div>
+                <div class="flex justify-between text-xs font-semibold mb-1">
+                  <span class="text-slate-300">🦶 Tendón de Aquiles / Tobillos</span>
+                  <span id="val-pain-achilles" class="font-mono font-bold px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-400">1 / 10</span>
+                </div>
+                <input type="range" id="input-pain-achilles" min="0" max="10" value="1" class="w-full h-1.5 bg-slate-700 rounded-lg cursor-pointer" />
+              </div>
+            </div>
+
+            <!-- Notas del día -->
+            <div>
+              <label for="input-wellness-notes" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Notas fisiológicas / Hidratación / Sensaciones</label>
+              <textarea id="input-wellness-notes" rows="2" placeholder="Ej: Buen descanso, ligera rigidez matutina en hombro derecho que cedió al calentar..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"></textarea>
+            </div>
+
+            <button type="submit" class="w-full py-3.5 px-5 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-[0.99] text-slate-950 font-extrabold text-sm shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              <span>Guardar Registro de Hoy</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Historial Reciente de Bienestar -->
+        <div class="lg:col-span-5 bg-card border border-slate-800 rounded-2xl p-5 sm:p-6 flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-extrabold text-white">Bitácora de Recuperación</h3>
+            <span class="text-xs text-slate-400">Últimos registros</span>
+          </div>
+
+          <div id="wellness-history-list" class="space-y-3 flex-1 overflow-y-auto max-h-[480px] pr-1">
+            <!-- Se renderiza dinámicamente -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- PESTAÑA 2: PLAN RUTA 5M (CARRERA & SPRINTS 10x100m)        -->
+    <!-- ========================================================= -->
+    <section id="tab-running" class="tab-panel hidden space-y-6">
+
+      <!-- Herramienta Interactiva: Temporizador 10 x 100m (Cronómetro de Serie + Descanso 5:00 min) -->
+      <div id="sprint-timer-card" class="bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/40 border border-emerald-500/30 rounded-2xl p-5 sm:p-6 shadow-xl">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-extrabold uppercase tracking-wider">Hito Semana 4+</span>
+              <span class="text-xs font-semibold text-emerald-400">Potencia & Mecánica (Precisión en Segundo Plano)</span>
+            </div>
+            <h2 class="text-xl font-black text-white mt-1">Bloque Velocidad: 10 × 100 metros</h2>
+            <p class="text-xs text-slate-300 mt-0.5">Cronometra tu sprint de 100m o inicia directo el descanso exacto de <strong class="text-emerald-400">5:00 minutos</strong> entre series.</p>
+          </div>
+
+          <button onclick="resetSprintSession()" class="self-start sm:self-center px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 border border-slate-700 transition">
+            Reiniciar 10 Series
+          </button>
+        </div>
+
+        <!-- Panel Central del Cronómetro -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+          <!-- Display Digital -->
+          <div class="md:col-span-6 bg-obsidian/90 border border-slate-800 rounded-2xl p-5 text-center relative overflow-hidden">
+            <div class="flex justify-between items-center text-xs font-bold uppercase tracking-wider mb-2">
+              <span id="sprint-mode-badge" class="text-emerald-400">LISTO PARA SERIE</span>
+              <span class="text-slate-400">Serie <span id="sprint-current-num" class="text-white font-mono text-sm">1</span> / 10</span>
+            </div>
+
+            <div id="sprint-timer-display" class="font-mono text-5xl sm:text-6xl font-black tracking-tight text-white my-2">
+              05:00
+            </div>
+
+            <!-- Barra de progreso de los 5:00 min -->
+            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-3">
+              <div id="sprint-progress-bar" class="h-full bg-emerald-500 transition-all duration-300" style="width: 100%"></div>
+            </div>
+
+            <p id="sprint-timer-sub" class="text-xs text-slate-400 mb-4">Usa el cronómetro de 100m o marca la serie para iniciar los 5:00 de pausa</p>
+
+            <!-- Botón Principal de Cronometrar 100m en vivo -->
+            <div class="mb-2.5">
+              <button id="btn-live-sprint" onclick="toggleLiveSprintStopwatch()" class="w-full py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs sm:text-sm transition shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2">
+                <span>⚡ Cronometrar Serie de 100m (En Vivo)</span>
+              </button>
+            </div>
+
+            <!-- Botones de Control de Descanso 5:00 -->
+            <div class="grid grid-cols-2 gap-2.5">
+              <button id="btn-start-rest" onclick="startFiveMinRest()" class="py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs sm:text-sm transition shadow-lg shadow-emerald-500/20">
+                ⏱️ Iniciar Descanso 5:00
+              </button>
+              <button id="btn-toggle-timer" onclick="toggleSprintTimer()" class="py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm border border-slate-700 transition">
+                ⏯️ Pausar / Reanudar
+              </button>
+            </div>
+
+            <!-- Ajustes rápidos de tiempo (-30s / +30s / Probar sonido) -->
+            <div class="mt-3 flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-800/80">
+              <div class="flex gap-1.5">
+                <button onclick="adjustSprintRest(-30)" class="px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-300 font-mono font-bold border border-slate-800">-30s</button>
+                <button onclick="adjustSprintRest(30)" class="px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-300 font-mono font-bold border border-slate-800">+30s</button>
+              </div>
+              <button onclick="testBeepSound()" class="hover:text-emerald-400 underline transition">
+                🔊 Probar sonido
+              </button>
+            </div>
+          </div>
+
+          <!-- Registro de Tiempos por Serie (1 a 10) + Estadísticas -->
+          <div class="md:col-span-6 bg-slate-900/70 border border-slate-800 rounded-2xl p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-300">Tiempos por Serie (seg)</h3>
+              <div class="flex items-center gap-2 text-xs font-mono">
+                <span id="sprint-avg-badge" class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">Prom: --</span>
+                <span id="sprint-best-badge" class="px-2 py-0.5 rounded bg-slate-800 text-emerald-400">Mejor: --</span>
+                <span id="sprint-completed-count" class="font-bold text-emerald-400">0/10</span>
+              </div>
+            </div>
+            <div id="sprint-reps-grid" class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+              <!-- 10 tarjetas de serie renderizadas por JS -->
+            </div>
+            <div id="sprint-dropoff-warning" class="hidden mt-2.5 p-2 rounded-lg bg-amber-500/15 border border-amber-500/30 text-[11px] text-amber-300 font-semibold">
+              ⚠️ Tu última serie cayó más de un 10% respecto a tu mejor tiempo. Prioriza técnica fluida sin forzar isquiotibiales.
+            </div>
+            <p class="text-[11px] text-slate-400 mt-3 leading-relaxed">
+              💡 <strong>Regla 60+:</strong> Corre al 80-85% de esfuerzo máximo (rápido pero fluido, sin tensar cuello ni hombros). Camina suave durante los 5 minutos de pausa.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progresión de 8 Semanas hacia 5 Millas -->
+      <div class="bg-card border border-slate-800 rounded-2xl p-5 sm:p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div>
+            <h2 class="text-lg font-extrabold text-white">Progresión Estructurada de 8 Semanas (Meta: 5.0 Millas)</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Selecciona cualquier semana para ver, anotar sensaciones y marcar tus sesiones completadas</p>
+          </div>
+          <!-- Selector rápido de píldoras de semana -->
+          <div id="week-pills-container" class="flex gap-1.5 overflow-x-auto no-scrollbar py-1">
+            <!-- Renderizado por JS -->
+          </div>
+        </div>
+
+        <!-- Detalle de la Semana Seleccionada -->
+        <div id="selected-week-detail" class="space-y-4">
+          <!-- Renderizado dinámico de las sesiones de carrera de la semana -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- PESTAÑA 3: FUERZA 60+ (FULL BODY & HOMBROS)               -->
+    <!-- ========================================================= -->
+    <section id="tab-strength" class="tab-panel hidden space-y-6">
+
+      <!-- Temporizador Rápido de Descanso entre Series + Selector Día A/B/C -->
+      <div class="bg-card border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-extrabold text-white">Fuerza 60+ • Cuerpo Completo & Salud de Hombros</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Al marcar cada serie (S1, S2, S3...) se inicia automáticamente tu descanso de gimnasio</p>
+        </div>
+
+        <!-- Mini Temporizador de Descanso Fuerza -->
+        <div class="flex items-center gap-1.5 sm:gap-2 bg-slate-900 border border-slate-700/80 rounded-xl p-2 self-start md:self-auto">
+          <span id="strength-rest-display" class="font-mono font-black text-lg text-emerald-400 px-2 min-w-[64px] text-center">01:30</span>
+          <button onclick="startStrengthRest(60)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-500 hover:text-slate-950 text-xs font-bold text-slate-200 transition">60s</button>
+          <button onclick="startStrengthRest(90)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-500 hover:text-slate-950 text-xs font-bold text-slate-200 transition">90s</button>
+          <button onclick="startStrengthRest(120)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-500 hover:text-slate-950 text-xs font-bold text-slate-200 transition">120s</button>
+          <button onclick="stopStrengthRest()" class="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition" title="Detener">✕</button>
+        </div>
+      </div>
+
+      <!-- Aviso automático si hay alerta de fatiga/dolor activa (-30% carga) -->
+      <div id="strength-deload-banner" class="hidden rounded-2xl p-4 bg-rose-950/60 border border-rose-500/50 text-rose-100 text-xs sm:text-sm flex items-center justify-between gap-3">
+        <div>
+          <strong class="font-extrabold">📉 Modo Descarga Preventiva (-30%):</strong> Tu último chequeo reportó fatiga o molestia articular alta. Usa hoy los pesos reducidos sugeridos en cada ejercicio.
+        </div>
+      </div>
+
+      <!-- Selector de Rutina (Día A, Día B, Día C) -->
+      <div class="grid grid-cols-3 gap-2.5">
+        <button onclick="selectStrengthDay('A')" id="btn-day-A" class="strength-day-btn p-3.5 rounded-2xl border text-left transition">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider">Rutina A</span>
+            <span id="badge-day-A" class="text-[10px] font-mono font-bold"></span>
+          </div>
+          <span class="text-xs sm:text-base font-extrabold block mt-0.5">Empuje, Hombro Lat. & Pierna</span>
+        </button>
+        <button onclick="selectStrengthDay('B')" id="btn-day-B" class="strength-day-btn p-3.5 rounded-2xl border text-left transition">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider">Rutina B</span>
+            <span id="badge-day-B" class="text-[10px] font-mono font-bold"></span>
+          </div>
+          <span class="text-xs sm:text-base font-extrabold block mt-0.5">Tracción, Deltoides Post. & Core</span>
+        </button>
+        <button onclick="selectStrengthDay('C')" id="btn-day-C" class="strength-day-btn p-3.5 rounded-2xl border text-left transition">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider">Rutina C</span>
+            <span id="badge-day-C" class="text-[10px] font-mono font-bold"></span>
+          </div>
+          <span class="text-xs sm:text-base font-extrabold block mt-0.5">Full Body & Manguito Rotador</span>
+        </button>
+      </div>
+
+      <!-- Lista de Ejercicios de la Rutina Activa -->
+      <div id="strength-exercises-container" class="space-y-4">
+        <!-- Renderizado dinámico por JS -->
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- PESTAÑA 4: GUÍA PREVENTIVA & LONGEVIDAD                   -->
+    <!-- ========================================================= -->
+    <section id="tab-guide" class="tab-panel hidden space-y-6">
+
+      <!-- Checklist Pre-Entrenamiento Interactivo -->
+      <div class="bg-gradient-to-r from-emerald-950/50 to-slate-900 border border-emerald-500/30 rounded-2xl p-5 sm:p-6">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h2 class="text-lg font-extrabold text-white">Checklist Obligatorio Pre-Sesión (60+ Años)</h2>
+            <p class="text-xs text-slate-300 mt-0.5">Verifica estos 5 puntos antes de iniciar carrera, sprints o pesas</p>
+          </div>
+          <button onclick="resetPreChecklist()" class="text-xs font-bold text-emerald-400 hover:underline">Limpiar</button>
+        </div>
+
+        <div id="pre-workout-checklist" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-4">
+          <!-- Renderizado por JS -->
+        </div>
+      </div>
+
+      <!-- Protocolos Detallados -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <!-- Protocolo 1: Calentamiento Dinámico Pre-Carrera & Sprints -->
+        <div class="bg-card border border-slate-800 rounded-2xl p-5 space-y-3">
+          <div class="flex items-center gap-2.5">
+            <span class="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center font-bold text-lg">🔥</span>
+            <div>
+              <h3 class="font-extrabold text-white text-base">Calentamiento Dinámico (10-12 min)</h3>
+              <p class="text-xs text-slate-400">Indispensable antes de trotar y antes del 10×100m</p>
+            </div>
+          </div>
+          <ul class="space-y-2.5 text-sm text-slate-300 pt-2 border-t border-slate-800">
+            <li class="flex gap-2.5"><span class="text-emerald-400 font-bold">1.</span><span><strong>Caminata enérgica (3 min):</strong> Braceo amplio para lubricar articulaciones y elevar temperatura.</span></li>
+            <li class="flex gap-2.5"><span class="text-emerald-400 font-bold">2.</span><span><strong>Movilidad de tobillo y Aquiles (2 min):</strong> Círculos de tobillo y elevaciones suaves de talón (15 reps) para proteger el tendón tras 1 año sin correr.</span></li>
+            <li class="flex gap-2.5"><span class="text-emerald-400 font-bold">3.</span><span><strong>Péndulos de cadera y activación de glúteos (3 min):</strong> Balanceos frontales/laterales (10 por pierna) + 12 sentadillas al aire controladas.</span></li>
+            <li class="flex gap-2.5"><span class="text-emerald-400 font-bold">4.</span><span><strong>Progresivos de aceleración (3 min - solo días de sprints):</strong> 3 rectas de 60m al 50%, 65% y 75% con 90s de pausa antes del primer 100m.</span></li>
+          </ul>
+        </div>
+
+        <!-- Protocolo 2: Salud de Hombros & Blindaje Articular -->
+        <div class="bg-card border border-slate-800 rounded-2xl p-5 space-y-3">
+          <div class="flex items-center gap-2.5">
+            <span class="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center font-bold text-lg">🦴</span>
+            <div>
+              <h3 class="font-extrabold text-white text-base">Blindaje de Hombros (+60 Años)</h3>
+              <p class="text-xs text-slate-400">Desarrollo muscular sin pinzamiento subacromial</p>
+            </div>
+          </div>
+          <ul class="space-y-2.5 text-sm text-slate-300 pt-2 border-t border-slate-800">
+            <li class="flex gap-2.5"><span class="text-emerald-400 font-bold">•</span><span><strong>Plano Escapular (30° hacia adelante):</strong> Al hacer elevaciones laterales o press, mantén los codos ligeramente adelantados respecto al torso, nunca en línea recta hacia atrás.</span></li>
+            <li class="flex gap-2.5"><span class="text-emerald-400 font-bold">•</span><span><strong>Agarre Neutro (Palmas enfrentadas):</strong> Prioriza mancuernas en agarre neutro para reducir estrés en el tendón del supraespinoso.</span></li>
+            <li class="flex gap-2.5"><span class="text-emerald-400 font-bold">•</span><span><strong>Ratio 2:1 Tracción vs Empuje:</strong> Por cada serie de press, realiza dos de remo o face-pulls para mantener los hombros atrás y postura erguida.</span></li>
+            <li class="flex gap-2.5"><span class="text-emerald-400 font-bold">•</span><span><strong>Calentamiento manguito (4 min):</strong> Rotaciones externas con banda elástica o mancuerna muy ligera (3-5 lbs) antes de tocar peso.</span></li>
+          </ul>
+        </div>
+
+        <!-- Protocolo 3: Hidratación Clima Cálido (Doral / Miami) & Nutrición -->
+        <div class="bg-card border border-slate-800 rounded-2xl p-5 space-y-3">
+          <div class="flex items-center gap-2.5">
+            <span class="w-9 h-9 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center font-bold text-lg">💧</span>
+            <div>
+              <h3 class="font-extrabold text-white text-base">Clima Cálido (Doral/Miami) & Recuperación</h3>
+              <p class="text-xs text-slate-400">Estrategia para 78 kg y alta humedad</p>
+            </div>
+          </div>
+          <ul class="space-y-2.5 text-sm text-slate-300 pt-2 border-t border-slate-800">
+            <li class="flex gap-2.5"><span class="text-sky-400 font-bold">•</span><span><strong>Horario óptimo:</strong> Corre antes de las 8:00 AM o después de las 6:30 PM para evitar estrés térmico y fatiga prematura.</span></li>
+            <li class="flex gap-2.5"><span class="text-sky-400 font-bold">•</span><span><strong>Electrolitos + Agua:</strong> 500 ml de agua con sodio/potasio 45 min antes de correr. A los 61 años la sensación de sed tarda más en activarse.</span></li>
+            <li class="flex gap-2.5"><span class="text-sky-400 font-bold">•</span><span><strong>Síntesis Proteica (78 kg):</strong> Apunta a 125–140 g de proteína diaria repartida en 3-4 comidas (30-40 g por toma) + colágeno/vitamina C para salud tendinosa.</span></li>
+          </ul>
+        </div>
+
+        <!-- Protocolo 4: Semáforo de Detención Inmediata -->
+        <div class="bg-card border border-rose-500/30 rounded-2xl p-5 space-y-3">
+          <div class="flex items-center gap-2.5">
+            <span class="w-9 h-9 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center font-bold text-lg">🛑</span>
+            <div>
+              <h3 class="font-extrabold text-white text-base">Señales Rojas: Cuándo Detener la Sesión</h3>
+              <p class="text-xs text-rose-400">Regla de oro: nunca entrenar sobre dolor agudo</p>
+            </div>
+          </div>
+          <ul class="space-y-2.5 text-sm text-slate-300 pt-2 border-t border-slate-800">
+            <li class="flex gap-2.5"><span class="text-rose-400 font-bold">1.</span><span><strong>Pinchazo agudo en tendón de Aquiles o pantorrilla:</strong> Detén el trote inmediatamente y camina.</span></li>
+            <li class="flex gap-2.5"><span class="text-rose-400 font-bold">2.</span><span><strong>Dolor punzante en la cara anterior/lateral del hombro</strong> al elevar el brazo por encima de 90°.</span></li>
+            <li class="flex gap-2.5"><span class="text-rose-400 font-bold">3.</span><span><strong>Dolor que empeora zancada tras zancada</strong> (a diferencia de una leve rigidez inicial que desaparece al minuto 5).</span></li>
+            <li class="flex gap-2.5"><span class="text-rose-400 font-bold">4.</span><span><strong>Mareo, opresión torácica o pulso desproporcionado</strong> por calor/humedad.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Barra de Navegación Inferior Fija para Móvil (iPhone / Android con soporte Safe Area) -->
+  <nav class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-slate-950/95 backdrop-blur-lg border-t border-slate-800 px-2 pt-1.5 safe-bottom-nav">
+    <div class="grid grid-cols-4 gap-1">
+      <button data-tab="dashboard" class="tab-btn-mobile flex flex-col items-center justify-center py-2 px-1 rounded-xl transition">
+        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        <span class="text-[10px] font-bold">Fatiga</span>
+      </button>
+
+      <button data-tab="running" class="tab-btn-mobile flex flex-col items-center justify-center py-2 px-1 rounded-xl transition">
+        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+        <span class="text-[10px] font-bold">Ruta 5M</span>
+      </button>
+
+      <button data-tab="strength" class="tab-btn-mobile flex flex-col items-center justify-center py-2 px-1 rounded-xl transition">
+        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 8h2v8H4V8zm14 0h2v8h-2V8zM7 10h10v4H7v-4zM2 11h2v2H2v-2zm18 0h2v2h-2v-2z" />
+        </svg>
+        <span class="text-[10px] font-bold">Fuerza 60+</span>
+      </button>
+
+      <button data-tab="guide" class="tab-btn-mobile flex flex-col items-center justify-center py-2 px-1 rounded-xl transition">
+        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+        <span class="text-[10px] font-bold">Guía</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ========================================================= -->
+  <!-- LÓGICA DE LA APLICACIÓN (JAVASCRIPT AUTOCONTENIDO)        -->
+  <!-- ========================================================= -->
+  <script>
+    // ===========================================================
+    // 1. DATOS ESTRUCTURADOS DEL PLAN (8 SEMANAS & FUERZA 60+)
+    // ===========================================================
+    const RUNNING_PLAN = [
+      {
+        week: 1,
+        targetMiles: 1.5,
+        phaseTitle: "Adaptación Tendinosa",
+        phaseSub: "Caminata + intervalos suaves tras 1 año sin correr",
+        sessions: [
+          { id: "w1-s1", day: "Sesión 1", title: "1.2 mi (Caminar 3 min / Trotar suave 2 min × 4)", focus: "Despertar tendón de Aquiles y rodillas sin impacto brusco. Ritmo conversacional." },
+          { id: "w1-s2", day: "Sesión 2", title: "1.5 mi (Caminar 2 min / Trotar suave 3 min × 4)", focus: "Mantener cadencia corta y ligera (165-170 pasos/min). Postura alta." },
+          { id: "w1-s3", day: "Sesión 3", title: "1.5 mi Continuo Suave (o con 1 pausa de 60s)", focus: "Consolidar distancia base de 1.5 millas con fatiga controlada." }
+        ]
+      },
+      {
+        week: 2,
+        targetMiles: 2.0,
+        phaseTitle: "Base Aeróbica Inicial",
+        phaseSub: "Transición hacia trote continuo de 2.0 millas",
+        sessions: [
+          { id: "w2-s1", day: "Sesión 1", title: "1.75 mi (Trote 6 min / Caminata 90s × 3)", focus: "Controlar respiración nasal-bucal relajada." },
+          { id: "w2-s2", day: "Sesión 2", title: "1.5 mi Trote Suave + 4 Rectas Técnicas de 60m", focus: "Al final del trote, hacer 4 aceleraciones suaves al 70% con 90s de pausa." },
+          { id: "w2-s3", day: "Sesión 3", title: "2.0 mi (3.2 km) Trote Continuo", focus: "Hito Semana 2: completar 2 millas continuas a ritmo cómodo." }
+        ]
+      },
+      {
+        week: 3,
+        targetMiles: 2.5,
+        phaseTitle: "Consolidación Aeróbica",
+        phaseSub: "Preparación articular antes del bloque de velocidad",
+        sessions: [
+          { id: "w3-s1", day: "Sesión 1", title: "2.0 mi Trote Aeróbico", focus: "Ritmo estable, hombros relajados y braceo compacto." },
+          { id: "w3-s2", day: "Sesión 2", title: "2.0 mi + 6 × 80m Progresivos (Descanso 2 min)", focus: "Preparación neuromuscular para los sprints de la Semana 4." },
+          { id: "w3-s3", day: "Sesión 3", title: "2.5 mi (4.0 km) Trote Continuo", focus: "Mitad del camino hacia las 5 millas alcanzada." }
+        ]
+      },
+      {
+        week: 4,
+        targetMiles: 3.0,
+        phaseTitle: "Hito Velocidad 10×100m",
+        phaseSub: "Introducción de potencia anaeróbica + 3.0 millas",
+        sessions: [
+          { id: "w4-s1", day: "Sesión 1", title: "2.5 mi Trote Suave de Recuperación", focus: "Mantener piernas frescas para el día clave de velocidad." },
+          { id: "w4-s2", day: "Sesión 2 ⚡", isSprintSession: true, title: "HITO: 10 × 100 metros (Descanso 5:00 min entre series)", focus: "Usa el temporizador superior. 12 min calentamiento + 10 sprints al 80-85% con 5 min pausa completa." },
+          { id: "w4-s3", day: "Sesión 3", title: "3.0 mi (4.8 km) Fondo Suave", focus: "48-72h después de los sprints. Ritmo muy controlado para asimilar carga." }
+        ]
+      },
+      {
+        week: 5,
+        targetMiles: 3.5,
+        phaseTitle: "Construcción de Fondo",
+        phaseSub: "Expansión de resistencia aeróbica a 3.5 millas",
+        sessions: [
+          { id: "w5-s1", day: "Sesión 1", title: "2.5 mi Trote Regenerativo", focus: "Enfoque en economía de carrera y relajación facial/hombros." },
+          { id: "w5-s2", day: "Sesión 2 ⚡", isSprintSession: true, title: "8 × 100m Velocidad Controlada (Descanso 4-5 min)", focus: "Mantener chispa neuromuscular sin agotar el sistema nervioso." },
+          { id: "w5-s3", day: "Sesión 3", title: "3.5 mi (5.6 km) Fondo Continuo", focus: "Hidratación previa obligatoria si entrenas con calor en Doral." }
+        ]
+      },
+      {
+        week: 6,
+        targetMiles: 4.0,
+        phaseTitle: "Resistencia Específica",
+        phaseSub: "Superando la barrera de las 4.0 millas (6.4 km)",
+        sessions: [
+          { id: "w6-s1", day: "Sesión 1", title: "3.0 mi Trote Aeróbico Estable", focus: "Consolidar las 3 millas como una distancia cómoda de diario." },
+          { id: "w6-s2", day: "Sesión 2 ⚡", isSprintSession: true, title: "10 × 100m Ritmo Vivo (Descanso 5:00 min)", focus: "Segunda sesión completa 10×100m: busca tiempos consistentes del sprint 1 al 10." },
+          { id: "w6-s3", day: "Sesión 3", title: "4.0 mi (6.44 km) Fondo Largo", focus: "80% de la meta final completada." }
+        ]
+      },
+      {
+        week: 7,
+        targetMiles: 4.5,
+        phaseTitle: "Pico de Resistencia",
+        phaseSub: "Antesala de las 5 millas (4.5 mi / 7.24 km)",
+        sessions: [
+          { id: "w7-s1", day: "Sesión 1", title: "3.0 mi Trote Suave", focus: "Recuperación activa y movilidad de cadera." },
+          { id: "w7-s2", day: "Sesión 2 ⚡", isSprintSession: true, title: "6 × 100m Mantenimiento Velocidad (Descanso 5:00 min)", focus: "Volumen reducido de sprints para llegar fresco al fondo de 4.5 millas." },
+          { id: "w7-s3", day: "Sesión 3", title: "4.5 mi (7.24 km) Fondo Largo", focus: "Prueba general de ritmo y gestión de energía para la meta final." }
+        ]
+      },
+      {
+        week: 8,
+        targetMiles: 5.0,
+        phaseTitle: "Meta Final: 5.0 Millas 🏆",
+        phaseSub: "Descarga inicial y conquista de las 5 millas (8.05 km)",
+        sessions: [
+          { id: "w8-s1", day: "Sesión 1", title: "2.5 mi Trote Muy Suave", focus: "Descarga (tapering) para llenar depósitos de glucógeno." },
+          { id: "w8-s2", day: "Sesión 2", title: "2.0 mi + 4 × 80m Activación (Descanso 3 min)", focus: "Activar fibras rápidas sin generar fatiga residual." },
+          { id: "w8-s3", day: "Sesión 3 🏆", title: "META CUMPLIDA: 5.0 Millas (8.05 km) Continuas", focus: "Sal conservador las primeras 2 millas, estabiliza en la 3-4 y disfruta la milla 5." }
+        ]
+      }
+    ];
+
+    const STRENGTH_ROUTINES = {
+      A: {
+        title: "Rutina A: Empuje, Hombro Lateral & Tren Inferior",
+        subtitle: "Prioridad en deltoides medio sin pinzamiento + fuerza de piernas para correr",
+        exercises: [
+          {
+            id: "ex-a1",
+            name: "Elevaciones Laterales con Mancuernas (Plano Escapular)",
+            isShoulderFocus: true,
+            numSets: 4,
+            setsReps: "4 series × 12-15 reps",
+            tempo: "2s subir - 1s pausa - 3s bajar",
+            defaultWeight: "15 lbs",
+            safetyNote: "Eleva los brazos a 30° hacia adelante (plano escapular), codos ligeramente flexionados y nunca subas más allá de la altura del hombro."
+          },
+          {
+            id: "ex-a2",
+            name: "Press de Hombros Sentado con Mancuernas (Agarre Neutro)",
+            isShoulderFocus: true,
+            numSets: 3,
+            setsReps: "3 series × 10-12 reps",
+            tempo: "2s subir - 3s bajar controlado",
+            defaultWeight: "25 lbs",
+            safetyNote: "Palmas mirándose entre sí (agarre neutro) para liberar espacio subacromial. Apoya la espalda firme en el banco a 80°."
+          },
+          {
+            id: "ex-a3",
+            name: "Sentadilla Goblet con Mancuerna o Kettlebell",
+            isShoulderFocus: false,
+            numSets: 3,
+            setsReps: "3 series × 10-12 reps",
+            tempo: "3s bajar - 1s pausa - 1s subir",
+            defaultWeight: "35 lbs",
+            safetyNote: "Mantiene el torso erguido y protege la zona lumbar mientras fortalece cuádriceps y glúteos para la carrera."
+          },
+          {
+            id: "ex-a4",
+            name: "Press de Pecho en Banco Inclinado (30°) con Mancuernas",
+            isShoulderFocus: false,
+            numSets: 3,
+            setsReps: "3 series × 10-12 reps",
+            tempo: "2s subir - 3s bajar",
+            defaultWeight: "30 lbs",
+            safetyNote: "Codos a 45° respecto al torso (nunca en T abierta a 90°) para cuidar la cápsula anterior del hombro."
+          },
+          {
+            id: "ex-a5",
+            name: "Elevación de Talones de Pie (Sóleo y Gemelos)",
+            isShoulderFocus: false,
+            numSets: 3,
+            setsReps: "3 series × 15 reps",
+            tempo: "2s subir - 2s pausa arriba - 3s bajar",
+            defaultWeight: "20 lbs",
+            safetyNote: "Clave para fortalecer el tendón de Aquiles y absorber impacto en los sprints de 100m."
+          }
+        ]
+      },
+      B: {
+        title: "Rutina B: Tracción, Deltoides Posterior & Cadena Posterior",
+        subtitle: "Equilibrio postural y fortalecimiento de espalda alta",
+        exercises: [
+          {
+            id: "ex-b1",
+            name: "Face Pulls en Polea Alta con Cuerda (Rotación Externa)",
+            isShoulderFocus: true,
+            numSets: 4,
+            setsReps: "4 series × 15 reps",
+            tempo: "2s tirar - 2s apretar escápulas - 2s volver",
+            defaultWeight: "25 lbs",
+            safetyNote: "Ejercicio número 1 para salud de hombros +60: lleva la cuerda hacia la frente separando las manos al final."
+          },
+          {
+            id: "ex-b2",
+            name: "Pájaros / Elevaciones Posteriores Pecho Apoyado en Banco",
+            isShoulderFocus: true,
+            numSets: 3,
+            setsReps: "3 series × 12-15 reps",
+            tempo: "2s subir - 1s pausa - 3s bajar",
+            defaultWeight: "12 lbs",
+            safetyNote: "Desarrolla el deltoides posterior (cabeza trasera del hombro) y corrige hombros adelantados."
+          },
+          {
+            id: "ex-b3",
+            name: "Remo Unilateral con Mancuerna Apoyado en Banco",
+            isShoulderFocus: false,
+            numSets: 3,
+            setsReps: "3 series × 10-12 reps por lado",
+            tempo: "1s tirar - 1s pausa - 3s bajar",
+            defaultWeight: "35 lbs",
+            safetyNote: "Mantén la espalda neutra y lleva la mancuerna hacia la cadera, no hacia el hombro."
+          },
+          {
+            id: "ex-b4",
+            name: "Peso Muerto Rumano con Mancuernas (Isquios y Glúteos)",
+            isShoulderFocus: false,
+            numSets: 3,
+            setsReps: "3 series × 10-12 reps",
+            tempo: "3s bajar - 1s subir explosivo",
+            defaultWeight: "30 lbs c/u",
+            safetyNote: "Protege los isquiotibiales durante los sprints de 100 metros. Baja solo hasta media espinilla manteniendo espalda recta."
+          },
+          {
+            id: "ex-b5",
+            name: "Plancha Frontal Anti-Extensión (Core)",
+            isShoulderFocus: false,
+            numSets: 3,
+            setsReps: "3 series × 35-45 seg",
+            tempo: "Isométrico con respiración controlada",
+            defaultWeight: "Peso corporal",
+            safetyNote: "Estabiliza la pelvis al correr para evitar sobrecarga lumbar en las millas 4 y 5."
+          }
+        ]
+      },
+      C: {
+        title: "Rutina C: Full Body Funcional & Manguito Rotador",
+        subtitle: "Estabilidad articular integral y transferencia directa a carrera",
+        exercises: [
+          {
+            id: "ex-c1",
+            name: "Rotación Externa de Hombro en Polea o Banda (Codo a 90°)",
+            isShoulderFocus: true,
+            numSets: 3,
+            setsReps: "3 series × 15 reps por brazo",
+            tempo: "2s abrir - 3s regresar lento",
+            defaultWeight: "10 lbs / Banda",
+            safetyNote: "Coloca una toalla enrollada entre el codo y las costillas para aislar el infraespinoso y redondo menor."
+          },
+          {
+            id: "ex-c2",
+            name: "Press Landmine Unilateral (o Press Inclinado Alterno)",
+            isShoulderFocus: true,
+            numSets: 3,
+            setsReps: "3 series × 10 reps por brazo",
+            tempo: "2s empujar - 3s bajar",
+            defaultWeight: "25 lbs",
+            safetyNote: "El ángulo diagonal ofrece el estímulo más seguro y potente para el deltoides anterior y medio sin estrés articular."
+          },
+          {
+            id: "ex-c3",
+            name: "Zancadas Estáticas (Split Squat) Controladas",
+            isShoulderFocus: false,
+            numSets: 3,
+            setsReps: "3 series × 10 reps por pierna",
+            tempo: "3s bajar - 1s subir",
+            defaultWeight: "20 lbs c/u",
+            safetyNote: "Mejora estabilidad unilateral de cadera y rodilla en cada apoyo de carrera."
+          },
+          {
+            id: "ex-c4",
+            name: "Jalón al Pecho en Polea (Agarre Neutro o Supino)",
+            isShoulderFocus: false,
+            numSets: 3,
+            setsReps: "3 series × 12 reps",
+            tempo: "2s bajar barra - 3s subir",
+            defaultWeight: "70 lbs",
+            safetyNote: "Deprime los hombros lejos de las orejas antes de iniciar el tirón."
+          },
+          {
+            id: "ex-c5",
+            name: "Paseo del Granjero (Farmer's Walk) con Mancuernas",
+            isShoulderFocus: true,
+            numSets: 3,
+            setsReps: "3 series × 30 metros",
+            tempo: "Paso firme y postura alta",
+            defaultWeight: "35 lbs c/u",
+            safetyNote: "Fortalece agarre, trapecio medio, estabilidad escapular y core en un solo movimiento."
+          }
+        ]
+      }
+    };
+
+    const PRE_WORKOUT_ITEMS = [
+      { id: "pre-1", text: "Chequeo de fatiga (<7) y dolor articular (<6) realizado hoy" },
+      { id: "pre-2", text: "500 ml de agua + electrolitos ingeridos 30-45 min antes" },
+      { id: "pre-3", text: "Movilidad de tobillos y tendón de Aquiles completada (2 min)" },
+      { id: "pre-4", text: "Activación de manguito rotador / cadera realizada (4 min)" },
+      { id: "pre-5", text: "Progresivos suaves listos (obligatorio si hoy tocan sprints 10×100m)" }
+    ];
+
+    // ===========================================================
+    // 2. ESTADO GLOBAL & PERSISTENCIA EN LOCALSTORAGE
+    // ===========================================================
+    const STORAGE_KEY = "ruta5m_fuerza60_state_v1";
+
+    const DEFAULT_STATE = {
+      activeTab: "dashboard",
+      currentWeek: 1,
+      activeStrengthDay: "A",
+      completedRunSessions: {},      // { "w1-s1": true, ... }
+      runSessionNotes: {},           // { "w1-s1": "Buen ritmo, 18 min", ... }
+      completedStrengthSessions: {}, // { "w1-A": true, "w1-B": true, ... } (24 totales en 8 semanas)
+      sprintReps: Array.from({ length: 10 }, (_, i) => ({
+        rep: i + 1,
+        done: false,
+        timeSec: ""
+      })),
+      strengthLogs: {}, // { "ex-a1": { weight: "15 lbs", reps: "15, 14, 13, 12", done: false, setsDone: [true, false, ...] } }
+      wellnessHistory: [
+        {
+          id: "init-1",
+          date: new Date().toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" }),
+          timestamp: Date.now(),
+          fatigue: 3,
+          sleep: 8,
+          painShoulder: 1,
+          painKnee: 1,
+          painAchilles: 1,
+          notes: "Inicio del programa Ruta 5M & Fuerza 60+. Listo para retomar progresivamente."
+        }
+      ],
+      preChecklist: {}
+    };
+
+    let appState = loadState();
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return JSON.parse(JSON.stringify(DEFAULT_STATE));
+        const parsed = JSON.parse(raw);
+        return {
+          ...JSON.parse(JSON.stringify(DEFAULT_STATE)),
+          ...parsed,
+          completedRunSessions: parsed.completedRunSessions || {},
+          runSessionNotes: parsed.runSessionNotes || {},
+          completedStrengthSessions: parsed.completedStrengthSessions || {},
+          sprintReps: parsed.sprintReps && parsed.sprintReps.length === 10
+            ? parsed.sprintReps
+            : JSON.parse(JSON.stringify(DEFAULT_STATE.sprintReps))
+        };
+      } catch (e) {
+        console.error("Error cargando localStorage:", e);
+        return JSON.parse(JSON.stringify(DEFAULT_STATE));
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (e) {
+        console.error("Error guardando localStorage:", e);
+      }
+    }
+
+    // ===========================================================
+    // 3. SISTEMA DE NOTIFICACIONES (TOAST) Y MODAL SEGURO
+    // ===========================================================
+    function showToast(message, type = "success") {
+      const container = document.getElementById("toast-container");
+      const toast = document.createElement("div");
+      const styles = {
+        success: "bg-emerald-950/95 border-emerald-500 text-emerald-100",
+        warning: "bg-amber-950/95 border-amber-500 text-amber-100",
+        danger: "bg-rose-950/95 border-rose-500 text-rose-100"
+      };
+      toast.className = `pointer-events-auto border px-4 py-3 rounded-xl shadow-2xl text-xs sm:text-sm font-bold flex items-center justify-between gap-3 transition-all duration-300 ${styles[type] || styles.success}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateY(-8px)";
+        setTimeout(() => toast.remove(), 300);
+      }, 3200);
+    }
+
+    let modalConfirmCallback = null;
+    function openConfirmModal(title, desc, onConfirm) {
+      document.getElementById("modal-title").textContent = title;
+      document.getElementById("modal-desc").textContent = desc;
+      modalConfirmCallback = onConfirm;
+      const modal = document.getElementById("confirm-modal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+
+    function closeConfirmModal() {
+      const modal = document.getElementById("confirm-modal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+      modalConfirmCallback = null;
+    }
+
+    document.getElementById("modal-cancel").addEventListener("click", closeConfirmModal);
+    document.getElementById("modal-confirm").addEventListener("click", () => {
+      if (typeof modalConfirmCallback === "function") modalConfirmCallback();
+      closeConfirmModal();
+    });
+
+    // ===========================================================
+    // 4. WEB AUDIO API (SINGLETON COMPATIBLE CON iOS SAFARI) & WAKE LOCK
+    // ===========================================================
+    let sharedAudioCtx = null;
+
+    function unlockAudioContext() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return null;
+        if (!sharedAudioCtx) {
+          sharedAudioCtx = new AudioCtx();
+        }
+        if (sharedAudioCtx.state === "suspended") {
+          sharedAudioCtx.resume();
+        }
+        return sharedAudioCtx;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function playAlertBeep(repeat = 3, freqHigh = 880, freqLow = 660) {
+      try {
+        const ctx = unlockAudioContext();
+        if (!ctx) return;
+        for (let i = 0; i < repeat; i++) {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "sine";
+          const startTime = ctx.currentTime + i * 0.32;
+          osc.frequency.setValueAtTime(i === repeat - 1 ? freqHigh : freqLow, startTime);
+          gain.gain.setValueAtTime(0.3, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.26);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(startTime);
+          osc.stop(startTime + 0.28);
+        }
+        if (navigator.vibrate) {
+          navigator.vibrate(repeat === 1 ? [80] : [200, 100, 200, 100, 300]);
+        }
+      } catch (e) {
+        console.warn("Audio no disponible:", e);
+      }
+    }
+
+    function testBeepSound() {
+      unlockAudioContext();
+      playAlertBeep(3);
+      showToast("🔊 Alerta sonora desbloqueada y probada para iPhone/Móvil", "success");
+    }
+
+    // Wake Lock API para evitar que el iPhone apague la pantalla durante sprints o descansos
+    let wakeLockSentinel = null;
+    async function requestScreenWakeLock() {
+      if (!("wakeLock" in navigator)) return;
+      try {
+        if (!wakeLockSentinel) {
+          wakeLockSentinel = await navigator.wakeLock.request("screen");
+          document.getElementById("wakelock-indicator")?.classList.remove("hidden");
+          wakeLockSentinel.addEventListener("release", () => {
+            wakeLockSentinel = null;
+            document.getElementById("wakelock-indicator")?.classList.add("hidden");
+          });
+        }
+      } catch (err) {
+        // Silencioso si el navegador lo rechaza por batería baja
+      }
+    }
+
+    async function releaseScreenWakeLockIfIdle() {
+      if (!sprintTimerRunning && !liveSprintRunning && !strengthRestEndTime && wakeLockSentinel) {
+        try {
+          await wakeLockSentinel.release();
+          wakeLockSentinel = null;
+        } catch (e) {}
+      }
+    }
+
+    // ===========================================================
+    // 5. NAVEGACIÓN ENTRE PESTAÑAS & SELECTOR DE SEMANA
+    // ===========================================================
+    function switchTab(tabName) {
+      appState.activeTab = tabName;
+      saveState();
+
+      document.querySelectorAll(".tab-panel").forEach(panel => {
+        panel.classList.toggle("hidden", panel.id !== `tab-${tabName}`);
+      });
+
+      // Estilos botones desktop
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        const isActive = btn.dataset.tab === tabName;
+        btn.className = `tab-btn flex-1 py-2.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition ${
+          isActive
+            ? "bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20"
+            : "text-slate-400 hover:text-white hover:bg-slate-800/70"
+        }`;
+      });
+
+      // Estilos botones mobile
+      document.querySelectorAll(".tab-btn-mobile").forEach(btn => {
+        const isActive = btn.dataset.tab === tabName;
+        btn.className = `tab-btn-mobile flex flex-col items-center justify-center py-2 px-1 rounded-xl transition ${
+          isActive
+            ? "bg-emerald-500/15 text-emerald-400"
+            : "text-slate-400 hover:text-slate-200"
+        }`;
+      });
+    }
+
+    function goToSprintTimer() {
+      switchTab("running");
+      setTimeout(() => {
+        document.getElementById("sprint-timer-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 80);
+    }
+
+    document.querySelectorAll("[data-tab]").forEach(btn => {
+      btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+    });
+
+    function setCurrentWeek(weekNum) {
+      appState.currentWeek = Number(weekNum);
+      saveState();
+      document.getElementById("global-week-select").value = String(appState.currentWeek);
+      renderDashboard();
+      renderRunningPlan();
+      renderStrengthSection();
+    }
+
+    document.getElementById("global-week-select").addEventListener("change", (e) => {
+      setCurrentWeek(e.target.value);
+      showToast(`Semana ${e.target.value} seleccionada`, "success");
+    });
+
+    // ===========================================================
+    // 6. PESTAÑA 1: DASHBOARD, BIENESTAR & LÓGICA PREVENTIVA
+    // ===========================================================
+    const sliderBindings = [
+      { inputId: "input-fatigue", valId: "val-fatigue", key: "fatigue", max: 10, warnAt: 7 },
+      { inputId: "input-sleep", valId: "val-sleep", key: "sleep", max: 10, invert: true },
+      { inputId: "input-pain-shoulder", valId: "val-pain-shoulder", key: "painShoulder", max: 10, warnAt: 6 },
+      { inputId: "input-pain-knee", valId: "val-pain-knee", key: "painKnee", max: 10, warnAt: 6 },
+      { inputId: "input-pain-achilles", valId: "val-pain-achilles", key: "painAchilles", max: 10, warnAt: 6 }
+    ];
+
+    function updateSliderBadgeUI(item, v) {
+      const badge = document.getElementById(item.valId);
+      if (!badge) return;
+      badge.textContent = `${v} / ${item.max}`;
+      if (item.invert) {
+        badge.className = `font-mono font-bold text-xs sm:text-sm px-2 py-0.5 rounded-lg ${
+          v <= 4 ? "bg-rose-500/20 text-rose-400" : v <= 6 ? "bg-amber-500/20 text-amber-400" : "bg-emerald-500/20 text-emerald-400"
+        }`;
+      } else {
+        badge.className = `font-mono font-bold text-xs sm:text-sm px-2 py-0.5 rounded-lg ${
+          v >= item.warnAt ? "bg-rose-500/20 text-rose-400" : v >= item.warnAt - 2 ? "bg-amber-500/20 text-amber-400" : "bg-emerald-500/20 text-emerald-400"
+        }`;
+      }
+    }
+
+    sliderBindings.forEach(item => {
+      const el = document.getElementById(item.inputId);
+      el.addEventListener("input", () => {
+        updateSliderBadgeUI(item, Number(el.value));
+      });
+    });
+
+    function syncSlidersFromLatestWellness() {
+      const latest = appState.wellnessHistory[0];
+      if (!latest) return;
+      sliderBindings.forEach(item => {
+        const el = document.getElementById(item.inputId);
+        if (el && latest[item.key] !== undefined) {
+          el.value = latest[item.key];
+          updateSliderBadgeUI(item, Number(latest[item.key]));
+        }
+      });
+    }
+
+    document.getElementById("wellness-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const fatigue = Number(document.getElementById("input-fatigue").value);
+      const sleep = Number(document.getElementById("input-sleep").value);
+      const painShoulder = Number(document.getElementById("input-pain-shoulder").value);
+      const painKnee = Number(document.getElementById("input-pain-knee").value);
+      const painAchilles = Number(document.getElementById("input-pain-achilles").value);
+      const notes = document.getElementById("input-wellness-notes").value.trim();
+
+      const entry = {
+        id: `w-${Date.now()}`,
+        date: new Date().toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }),
+        timestamp: Date.now(),
+        fatigue,
+        sleep,
+        painShoulder,
+        painKnee,
+        painAchilles,
+        notes
+      };
+
+      appState.wellnessHistory.unshift(entry);
+      if (appState.wellnessHistory.length > 30) appState.wellnessHistory.pop();
+      document.getElementById("input-wellness-notes").value = "";
+      saveState();
+      renderDashboard();
+      renderStrengthSection();
+
+      const maxPain = Math.max(painShoulder, painKnee, painAchilles);
+      if (fatigue >= 7 || maxPain >= 6) {
+        showToast("⚠️ Alerta preventiva activada: Prioriza recuperación activa hoy", "danger");
+      } else {
+        showToast("✅ Registro diario de bienestar guardado", "success");
+      }
+    });
+
+    function deleteWellnessEntry(entryId) {
+      if (appState.wellnessHistory.length <= 1) {
+        showToast("Debe conservarse al menos un registro base", "warning");
+        return;
+      }
+      appState.wellnessHistory = appState.wellnessHistory.filter(item => item.id !== entryId);
+      saveState();
+      syncSlidersFromLatestWellness();
+      renderDashboard();
+      renderStrengthSection();
+      showToast("Registro eliminado de la bitácora", "success");
+    }
+
+    function isDeloadAlertActive() {
+      const latest = appState.wellnessHistory[0] || { fatigue: 3, sleep: 8, painShoulder: 1, painKnee: 1, painAchilles: 1 };
+      const maxPain = Math.max(latest.painShoulder, latest.painKnee, latest.painAchilles);
+      return latest.fatigue >= 7 || maxPain >= 6;
+    }
+
+    function renderDashboard() {
+      const weekData = RUNNING_PLAN.find(w => w.week === appState.currentWeek) || RUNNING_PLAN[0];
+      const latest = appState.wellnessHistory[0] || { fatigue: 3, sleep: 8, painShoulder: 1, painKnee: 1, painAchilles: 1 };
+
+      // Fecha actual
+      document.getElementById("today-date-label").textContent = new Date().toLocaleDateString("es-ES", {
+        weekday: "short", day: "numeric", month: "short"
+      });
+
+      // KPI 1: Millas objetivo de la semana actual vs 5.0 millas
+      const pct = Math.round((weekData.targetMiles / 5.0) * 100);
+      document.getElementById("kpi-current-miles").textContent = weekData.targetMiles.toFixed(1);
+      document.getElementById("kpi-miles-pct").textContent = `${pct}%`;
+      document.getElementById("kpi-miles-bar").style.width = `${pct}%`;
+
+      // KPI 2: Sesiones completadas (24 Carrera + 24 Fuerza = 48 totales)
+      const runDoneCount = Object.values(appState.completedRunSessions).filter(Boolean).length;
+      const strengthDoneCount = Object.values(appState.completedStrengthSessions || {}).filter(Boolean).length;
+      const totalDone = runDoneCount + strengthDoneCount;
+      const totalPlanned = 48;
+      const totalPct = Math.round((totalDone / totalPlanned) * 100);
+
+      document.getElementById("kpi-sessions-done").textContent = totalDone;
+      document.getElementById("kpi-sessions-total").textContent = `/ ${totalPlanned} planificadas`;
+      document.getElementById("kpi-sessions-pct").textContent = `${totalPct}%`;
+      document.getElementById("kpi-sessions-breakdown").textContent = `${runDoneCount}/24 Carrera • ${strengthDoneCount}/24 Fuerza`;
+
+      // Resumen en tarjetas de acceso rápido
+      const weekRunsDone = weekData.sessions.filter(s => appState.completedRunSessions[s.id]).length;
+      document.getElementById("quick-run-status").textContent = `Sem ${weekData.week}: ${weekRunsDone}/3 sesiones hechas`;
+      const sprintsDone = appState.sprintReps.filter(r => r.done).length;
+      document.getElementById("quick-sprint-status").textContent = `${sprintsDone}/10 series registradas`;
+      const weekStrDone = ["A", "B", "C"].filter(d => appState.completedStrengthSessions?.[`w${weekData.week}-${d}`]).length;
+      document.getElementById("quick-strength-status").textContent = `Sem ${weekData.week}: ${weekStrDone}/3 rutinas hechas`;
+
+      // KPI 3: Semana & Fase
+      document.getElementById("kpi-week-badge").textContent = `Sem ${weekData.week}`;
+      document.getElementById("kpi-phase-title").textContent = weekData.phaseTitle;
+      document.getElementById("kpi-phase-sub").textContent = weekData.phaseSub;
+
+      // Lógica Preventiva Automática + Índice numérico de Preparación (Readiness 0-100%)
+      const maxPain = Math.max(latest.painShoulder, latest.painKnee, latest.painAchilles);
+      const rawScore = Math.round(
+        100 - ((latest.fatigue - 1) * 4.5) - (maxPain * 5.5) + ((latest.sleep - 5) * 3)
+      );
+      const readinessScore = Math.max(15, Math.min(99, rawScore));
+
+      const isAlert = latest.fatigue >= 7 || maxPain >= 6;
+      const isModerate = !isAlert && (latest.fatigue >= 5 || maxPain >= 4 || latest.sleep <= 5);
+
+      const alertBanner = document.getElementById("preventive-alert-banner");
+      const readinessLabel = document.getElementById("kpi-readiness-label");
+      const readinessScoreEl = document.getElementById("kpi-readiness-score");
+      const readinessSub = document.getElementById("kpi-readiness-sub");
+      const readinessDot = document.getElementById("kpi-readiness-dot");
+
+      readinessScoreEl.textContent = `${readinessScore}%`;
+
+      if (isAlert) {
+        alertBanner.classList.remove("hidden", "bg-amber-950/60", "border-amber-500/60", "text-amber-100");
+        alertBanner.classList.add("bg-rose-950/80", "border-rose-500", "text-rose-100");
+        document.getElementById("alert-icon-box").className = "w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 mt-0.5";
+
+        const reasons = [];
+        if (latest.fatigue >= 7) reasons.push(`fatiga muscular alta (${latest.fatigue}/10)`);
+        if (latest.painShoulder >= 6) reasons.push(`dolor en hombro (${latest.painShoulder}/10)`);
+        if (latest.painKnee >= 6) reasons.push(`dolor en rodilla (${latest.painKnee}/10)`);
+        if (latest.painAchilles >= 6) reasons.push(`molestia en tendón de Aquiles (${latest.painAchilles}/10)`);
+
+        document.getElementById("alert-title").textContent = "🚨 Alerta Preventiva 60+: Recuperación Activa Recomendada";
+        document.getElementById("alert-message").textContent = `Has reportado ${reasons.join(" y ")}. Para evitar lesiones tendinosas o pinzamiento articular, sustituye hoy el trote o los sprints 10×100m por caminata suave, movilidad articular y reduce el peso en gimnasio un 30%.`;
+
+        readinessLabel.textContent = "Recuperar";
+        readinessLabel.className = "text-2xl sm:text-3xl font-black text-rose-400";
+        readinessSub.textContent = "Sustituir impacto por movilidad";
+        readinessDot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping";
+      } else if (isModerate) {
+        alertBanner.classList.remove("hidden", "bg-rose-950/80", "border-rose-500", "text-rose-100");
+        alertBanner.classList.add("bg-amber-950/60", "border-amber-500/60", "text-amber-100");
+        document.getElementById("alert-icon-box").className = "w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 mt-0.5";
+
+        document.getElementById("alert-title").textContent = "⚡ Precaución Moderada: Ajusta el Ritmo Hoy";
+        document.getElementById("alert-message").textContent = `Fatiga (${latest.fatigue}/10) o molestia articular leve (${maxPain}/10) detectada. Extiende tu calentamiento dinámico a 15 minutos y mantén las series de fuerza lejos del fallo muscular.`;
+
+        readinessLabel.textContent = "Moderada";
+        readinessLabel.className = "text-2xl sm:text-3xl font-black text-amber-400";
+        readinessSub.textContent = "Calentar 15 min + ritmo suave";
+        readinessDot.className = "w-2.5 h-2.5 rounded-full bg-amber-400";
+      } else {
+        alertBanner.classList.add("hidden");
+        readinessLabel.textContent = "Óptima";
+        readinessLabel.className = "text-2xl sm:text-3xl font-black text-emerald-400";
+        readinessSub.textContent = "Listo para entrenar según plan";
+        readinessDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
+      }
+
+      // Renderizar Historial de Bienestar
+      const historyContainer = document.getElementById("wellness-history-list");
+      historyContainer.innerHTML = appState.wellnessHistory.map((item, idx) => {
+        const itemMaxPain = Math.max(item.painShoulder, item.painKnee, item.painAchilles);
+        const badgeColor = (item.fatigue >= 7 || itemMaxPain >= 6)
+          ? "border-rose-500/40 bg-rose-950/25"
+          : (item.fatigue >= 5 || itemMaxPain >= 4)
+            ? "border-amber-500/40 bg-amber-950/20"
+            : "border-slate-800 bg-slate-900/70";
+
+        return `
+          <div class="border ${badgeColor} rounded-xl p-3.5 text-xs space-y-2">
+            <div class="flex justify-between items-center gap-2">
+              <span class="font-bold text-slate-200 capitalize">${escapeHtml(item.date)}</span>
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-bold ${item.fatigue >= 7 ? 'text-rose-400' : 'text-emerald-400'}">Fatiga: ${item.fatigue}/10</span>
+                ${appState.wellnessHistory.length > 1 ? `<button onclick="deleteWellnessEntry('${item.id}')" class="text-slate-500 hover:text-rose-400 transition px-1" title="Eliminar registro">✕</button>` : ""}
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-1.5 text-[11px] font-semibold">
+              <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">😴 Sueño: ${item.sleep}/10</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 ${item.painShoulder >= 6 ? 'text-rose-400' : 'text-slate-300'}">🦴 Hombro: ${item.painShoulder}</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 ${item.painKnee >= 6 ? 'text-rose-400' : 'text-slate-300'}">🦵 Rodilla: ${item.painKnee}</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 ${item.painAchilles >= 6 ? 'text-rose-400' : 'text-slate-300'}">🦶 Aquiles: ${item.painAchilles}</span>
+            </div>
+            ${item.notes ? `<p class="text-slate-400 italic leading-relaxed">"${escapeHtml(item.notes)}"</p>` : ""}
+          </div>
+        `;
+      }).join("");
+    }
+
+    // ===========================================================
+    // 7. PESTAÑA 2: TEMPORIZADOR 10x100m (CON TIMESTAMP EXACTO EN SEGUNDO PLANO + CRONÓMETRO 100M)
+    // ===========================================================
+    const SPRINT_REST_DURATION = 300; // 5 minutos = 300 segundos
+    let sprintRestSecondsLeft = SPRINT_REST_DURATION;
+    let sprintRestEndTime = null;     // Timestamp exacto para no perder segundos si iOS bloquea pantalla
+    let sprintTimerInterval = null;
+    let sprintTimerRunning = false;
+    let lastCountdownBeepSec = null;
+
+    // Cronómetro en vivo para medir el sprint de 100m (décimas de segundo)
+    let liveSprintRunning = false;
+    let liveSprintStartTime = null;
+    let liveSprintInterval = null;
+
+    function formatMMSS(totalSec) {
+      const safeSec = Math.max(0, Math.round(totalSec));
+      const mins = Math.floor(safeSec / 60);
+      const secs = safeSec % 60;
+      return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+    }
+
+    function updateSprintTimerUI() {
+      const display = document.getElementById("sprint-timer-display");
+      const badge = document.getElementById("sprint-mode-badge");
+      const progressBar = document.getElementById("sprint-progress-bar");
+      const liveBtn = document.getElementById("btn-live-sprint");
+
+      if (liveSprintRunning) {
+        const elapsedSec = ((Date.now() - liveSprintStartTime) / 1000).toFixed(1);
+        display.textContent = `${elapsedSec}s`;
+        display.className = "font-mono text-5xl sm:text-6xl font-black tracking-tight text-amber-400 my-2";
+        badge.textContent = "🏃‍♂️ CORRIENDO 100M...";
+        badge.className = "text-amber-400 animate-pulse";
+        progressBar.style.width = "100%";
+        progressBar.className = "h-full bg-amber-400 transition-all";
+        liveBtn.innerHTML = `<span>🛑 Detener 100m y Guardar + Iniciar 5:00</span>`;
+        liveBtn.className = "w-full py-3 px-4 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-extrabold text-xs sm:text-sm transition shadow-lg shadow-rose-500/25 flex items-center justify-center gap-2";
+        return;
+      }
+
+      liveBtn.innerHTML = `<span>⚡ Cronometrar Serie de 100m (En Vivo)</span>`;
+      liveBtn.className = "w-full py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs sm:text-sm transition shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2";
+
+      display.textContent = formatMMSS(sprintRestSecondsLeft);
+      const pct = Math.max(0, Math.min(100, (sprintRestSecondsLeft / SPRINT_REST_DURATION) * 100));
+      progressBar.style.width = `${pct}%`;
+
+      if (sprintTimerRunning) {
+        badge.textContent = "⏳ DESCANSANDO (RECUPERACIÓN ACTIVA)";
+        badge.className = "text-amber-400 animate-pulse";
+        display.className = "font-mono text-5xl sm:text-6xl font-black tracking-tight text-amber-400 my-2";
+        progressBar.className = "h-full bg-amber-400 transition-all duration-300";
+      } else if (sprintRestSecondsLeft === 0) {
+        badge.textContent = "🟢 ¡LISTO PARA SIGUIENTE 100M!";
+        badge.className = "text-emerald-400";
+        display.className = "font-mono text-5xl sm:text-6xl font-black tracking-tight text-emerald-400 my-2";
+        progressBar.className = "h-full bg-emerald-500 transition-all duration-300";
+      } else {
+        badge.textContent = "LISTO PARA SERIE";
+        badge.className = "text-emerald-400";
+        display.className = "font-mono text-5xl sm:text-6xl font-black tracking-tight text-white my-2";
+        progressBar.className = "h-full bg-emerald-500 transition-all duration-300";
+      }
+    }
+
+    function toggleLiveSprintStopwatch() {
+      unlockAudioContext();
+      if (!liveSprintRunning) {
+        // Si estaba corriendo el descanso, lo detenemos para medir el sprint
+        clearInterval(sprintTimerInterval);
+        sprintTimerRunning = false;
+        sprintRestEndTime = null;
+
+        liveSprintRunning = true;
+        liveSprintStartTime = Date.now();
+        requestScreenWakeLock();
+        playAlertBeep(1, 880, 880);
+        updateSprintTimerUI();
+
+        liveSprintInterval = setInterval(() => {
+          updateSprintTimerUI();
+        }, 100);
+      } else {
+        // Detener cronómetro de 100m, registrar en la primera serie pendiente y arrancar descanso de 5:00
+        clearInterval(liveSprintInterval);
+        const elapsedSec = ((Date.now() - liveSprintStartTime) / 1000).toFixed(1);
+        liveSprintRunning = false;
+        liveSprintStartTime = null;
+
+        const targetIndex = appState.sprintReps.findIndex(r => !r.done);
+        const idxToSave = targetIndex !== -1 ? targetIndex : 9;
+
+        appState.sprintReps[idxToSave].timeSec = elapsedSec;
+        appState.sprintReps[idxToSave].done = true;
+        saveState();
+        renderSprintGrid();
+        renderDashboard();
+
+        if (idxToSave < 9) {
+          startFiveMinRest();
+          showToast(`⚡ Serie #${idxToSave + 1} guardada (${elapsedSec}s). Descanso 5:00 iniciado`, "success");
+        } else {
+          updateSprintTimerUI();
+          playAlertBeep(4);
+          releaseScreenWakeLockIfIdle();
+          showToast(`🏆 ¡Serie #10 completada en ${elapsedSec}s! Bloque 10×100m finalizado`, "success");
+        }
+      }
+    }
+
+    function tickSprintRestTimer() {
+      if (!sprintTimerRunning || !sprintRestEndTime) return;
+      const msLeft = sprintRestEndTime - Date.now();
+      const secsLeft = Math.max(0, Math.ceil(msLeft / 1000));
+      sprintRestSecondsLeft = secsLeft;
+
+      // Aviso corto en los últimos 3, 2, 1 segundos
+      if (secsLeft > 0 && secsLeft <= 3 && lastCountdownBeepSec !== secsLeft) {
+        lastCountdownBeepSec = secsLeft;
+        playAlertBeep(1, 660, 660);
+      }
+
+      if (secsLeft <= 0) {
+        clearInterval(sprintTimerInterval);
+        sprintTimerRunning = false;
+        sprintRestEndTime = null;
+        sprintRestSecondsLeft = 0;
+        lastCountdownBeepSec = null;
+        updateSprintTimerUI();
+        playAlertBeep(4, 980, 740);
+        releaseScreenWakeLockIfIdle();
+        showToast("🔔 ¡5:00 minutos completados! Listo para el siguiente 100m", "success");
+      } else {
+        updateSprintTimerUI();
+      }
+    }
+
+    function startFiveMinRest() {
+      unlockAudioContext();
+      if (liveSprintRunning) {
+        clearInterval(liveSprintInterval);
+        liveSprintRunning = false;
+      }
+      clearInterval(sprintTimerInterval);
+      sprintRestSecondsLeft = SPRINT_REST_DURATION;
+      sprintRestEndTime = Date.now() + SPRINT_REST_DURATION * 1000;
+      sprintTimerRunning = true;
+      lastCountdownBeepSec = null;
+      requestScreenWakeLock();
+      updateSprintTimerUI();
+
+      sprintTimerInterval = setInterval(tickSprintRestTimer, 250);
+    }
+
+    function toggleSprintTimer() {
+      unlockAudioContext();
+      if (liveSprintRunning) return;
+      if (sprintTimerRunning) {
+        clearInterval(sprintTimerInterval);
+        sprintTimerRunning = false;
+        sprintRestEndTime = null;
+        updateSprintTimerUI();
+        releaseScreenWakeLockIfIdle();
+      } else {
+        if (sprintRestSecondsLeft <= 0) sprintRestSecondsLeft = SPRINT_REST_DURATION;
+        sprintRestEndTime = Date.now() + sprintRestSecondsLeft * 1000;
+        sprintTimerRunning = true;
+        lastCountdownBeepSec = null;
+        requestScreenWakeLock();
+        updateSprintTimerUI();
+        sprintTimerInterval = setInterval(tickSprintRestTimer, 250);
+      }
+    }
+
+    function adjustSprintRest(deltaSeconds) {
+      if (liveSprintRunning) return;
+      sprintRestSecondsLeft = Math.max(0, Math.min(600, sprintRestSecondsLeft + deltaSeconds));
+      if (sprintTimerRunning) {
+        sprintRestEndTime = Date.now() + sprintRestSecondsLeft * 1000;
+      }
+      updateSprintTimerUI();
+    }
+
+    function toggleSprintRepDone(index) {
+      unlockAudioContext();
+      appState.sprintReps[index].done = !appState.sprintReps[index].done;
+      saveState();
+      renderSprintGrid();
+      renderDashboard();
+      if (appState.sprintReps[index].done && index < 9) {
+        startFiveMinRest();
+        showToast(`Serie ${index + 1}/10 marcada. Iniciando descanso de 5:00 min`, "success");
+      } else if (appState.sprintReps[index].done && index === 9) {
+        showToast("🏆 ¡Bloque 10 × 100m completado con éxito!", "success");
+      }
+    }
+
+    function updateSprintRepTime(index, value) {
+      appState.sprintReps[index].timeSec = value.replace(",", ".");
+      saveState();
+      renderSprintGrid();
+    }
+
+    function resetSprintSession() {
+      openConfirmModal(
+        "Reiniciar bloque 10 × 100m",
+        "¿Deseas limpiar las 10 series marcadas y reiniciar el cronómetro a 05:00?",
+        () => {
+          clearInterval(sprintTimerInterval);
+          clearInterval(liveSprintInterval);
+          sprintTimerRunning = false;
+          liveSprintRunning = false;
+          sprintRestEndTime = null;
+          sprintRestSecondsLeft = SPRINT_REST_DURATION;
+          appState.sprintReps = Array.from({ length: 10 }, (_, i) => ({
+            rep: i + 1,
+            done: false,
+            timeSec: ""
+          }));
+          saveState();
+          updateSprintTimerUI();
+          renderSprintGrid();
+          renderDashboard();
+          releaseScreenWakeLockIfIdle();
+          showToast("Bloque 10 × 100m reiniciado", "success");
+        }
+      );
+    }
+
+    function renderSprintGrid() {
+      const grid = document.getElementById("sprint-reps-grid");
+      const doneCount = appState.sprintReps.filter(r => r.done).length;
+      const nextRep = appState.sprintReps.find(r => !r.done);
+
+      document.getElementById("sprint-completed-count").textContent = `${doneCount}/10`;
+      document.getElementById("sprint-current-num").textContent = nextRep ? nextRep.rep : 10;
+
+      // Calcular promedio, mejor tiempo y alerta de caída >10%
+      const numericTimes = appState.sprintReps
+        .map(r => parseFloat(r.timeSec))
+        .filter(n => !isNaN(n) && n > 5 && n < 60);
+
+      const avgBadge = document.getElementById("sprint-avg-badge");
+      const bestBadge = document.getElementById("sprint-best-badge");
+      const dropoffWarn = document.getElementById("sprint-dropoff-warning");
+
+      if (numericTimes.length > 0) {
+        const avg = (numericTimes.reduce((a, b) => a + b, 0) / numericTimes.length).toFixed(1);
+        const best = Math.min(...numericTimes).toFixed(1);
+        const last = numericTimes[numericTimes.length - 1];
+        avgBadge.textContent = `Prom: ${avg}s`;
+        bestBadge.textContent = `Mejor: ${best}s`;
+        if (numericTimes.length >= 2 && last > parseFloat(best) * 1.1) {
+          dropoffWarn.classList.remove("hidden");
+        } else {
+          dropoffWarn.classList.add("hidden");
+        }
+      } else {
+        avgBadge.textContent = "Prom: --";
+        bestBadge.textContent = "Mejor: --";
+        dropoffWarn.classList.add("hidden");
+      }
+
+      grid.innerHTML = appState.sprintReps.map((item, idx) => `
+        <div class="rounded-xl p-2 border transition flex flex-col items-center gap-1.5 ${
+          item.done
+            ? "bg-emerald-500/15 border-emerald-500/50"
+            : "bg-slate-950/80 border-slate-800"
+        }">
+          <button onclick="toggleSprintRepDone(${idx})" class="w-full py-1 rounded-lg text-xs font-extrabold flex items-center justify-center gap-1 transition ${
+            item.done ? "bg-emerald-500 text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+          }">
+            <span>#${item.rep}</span>
+            <span>${item.done ? "✓" : ""}</span>
+          </button>
+          <input
+            type="text"
+            inputmode="decimal"
+            value="${escapeHtml(item.timeSec)}"
+            onchange="updateSprintRepTime(${idx}, this.value)"
+            placeholder="seg"
+            aria-label="Tiempo serie ${item.rep}"
+            class="w-full bg-slate-900 border border-slate-700/80 rounded-md px-1.5 py-1 text-center font-mono text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+          />
+        </div>
+      `).join("");
+    }
+
+    function toggleRunSession(sessionId) {
+      appState.completedRunSessions[sessionId] = !appState.completedRunSessions[sessionId];
+      saveState();
+      renderRunningPlan();
+      renderDashboard();
+      if (appState.completedRunSessions[sessionId]) {
+        showToast("✅ Sesión de carrera completada", "success");
+      }
+    }
+
+    function updateRunSessionNote(sessionId, noteValue) {
+      if (!appState.runSessionNotes) appState.runSessionNotes = {};
+      appState.runSessionNotes[sessionId] = noteValue;
+      saveState();
+    }
+
+    function renderRunningPlan() {
+      // Píldoras de semanas 1-8
+      const pillsContainer = document.getElementById("week-pills-container");
+      pillsContainer.innerHTML = RUNNING_PLAN.map(w => {
+        const active = w.week === appState.currentWeek;
+        const doneInWeek = w.sessions.filter(s => appState.completedRunSessions[s.id]).length;
+        return `
+          <button onclick="setCurrentWeek(${w.week})" class="px-3 py-1.5 rounded-xl text-xs font-extrabold whitespace-nowrap border transition flex items-center gap-1.5 ${
+            active
+              ? "bg-emerald-500 text-slate-950 border-emerald-400 shadow-md shadow-emerald-500/20"
+              : "bg-slate-900 text-slate-400 border-slate-800 hover:text-white"
+          }">
+            <span>Sem ${w.week} (${w.targetMiles} mi)</span>
+            ${doneInWeek === 3 ? `<span>✓</span>` : ""}
+          </button>
+        `;
+      }).join("");
+
+      const weekObj = RUNNING_PLAN.find(w => w.week === appState.currentWeek) || RUNNING_PLAN[0];
+      const detailContainer = document.getElementById("selected-week-detail");
+
+      detailContainer.innerHTML = `
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">Semana ${weekObj.week} de 8 • Objetivo: ${weekObj.targetMiles} Millas (${(weekObj.targetMiles * 1.60934).toFixed(2)} km)</span>
+            <h3 class="text-base sm:text-lg font-extrabold text-white mt-0.5">${weekObj.phaseTitle}</h3>
+          </div>
+          <span class="text-xs text-slate-400">${weekObj.phaseSub}</span>
+        </div>
+
+        <div class="space-y-3">
+          ${weekObj.sessions.map(s => {
+            const isDone = !!appState.completedRunSessions[s.id];
+            const note = (appState.runSessionNotes && appState.runSessionNotes[s.id]) || "";
+            return `
+              <div class="border rounded-2xl p-4 transition flex items-start gap-3.5 ${
+                isDone
+                  ? "bg-emerald-950/20 border-emerald-500/40"
+                  : "bg-slate-900/60 border-slate-800 hover:border-slate-700"
+              }">
+                <button onclick="toggleRunSession('${s.id}')" class="mt-0.5 w-7 h-7 rounded-xl border-2 flex items-center justify-center shrink-0 transition ${
+                  isDone
+                    ? "bg-emerald-500 border-emerald-500 text-slate-950 font-black"
+                    : "border-slate-600 hover:border-emerald-400 text-transparent"
+                }" aria-label="Marcar sesión">
+                  ✓
+                </button>
+                <div class="flex-1 space-y-2">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="px-2 py-0.5 rounded-md bg-slate-800 text-emerald-400 text-[11px] font-bold">${s.day}</span>
+                      <h4 class="font-extrabold text-sm sm:text-base ${isDone ? "line-through text-slate-400" : "text-white"}">${s.title}</h4>
+                    </div>
+                    ${s.isSprintSession ? `<button onclick="goToSprintTimer()" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30 hover:bg-amber-500/25 transition">⏱️ Ir al Cronómetro 10×100m</button>` : ""}
+                  </div>
+                  <p class="text-xs text-slate-300 leading-relaxed">${s.focus}</p>
+                  <input
+                    type="text"
+                    value="${escapeHtml(note)}"
+                    onchange="updateRunSessionNote('${s.id}', this.value)"
+                    placeholder="Anotar tiempo total, ritmo o sensaciones de la sesión..."
+                    class="w-full bg-slate-950/70 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    // ===========================================================
+    // 8. PESTAÑA 3: FUERZA 60+ (FULL BODY & HOMBROS CON TRACKING POR SERIE)
+    // ===========================================================
+    let strengthRestInterval = null;
+    let strengthRestEndTime = null;
+    let strengthRestRemaining = 90;
+
+    function tickStrengthRest() {
+      if (!strengthRestEndTime) return;
+      const secsLeft = Math.max(0, Math.ceil((strengthRestEndTime - Date.now()) / 1000));
+      strengthRestRemaining = secsLeft;
+      const display = document.getElementById("strength-rest-display");
+      if (secsLeft > 0) {
+        display.textContent = formatMMSS(secsLeft);
+      } else {
+        clearInterval(strengthRestInterval);
+        strengthRestEndTime = null;
+        display.textContent = "00:00";
+        display.className = "font-mono font-black text-lg text-emerald-400 px-2 min-w-[64px] text-center";
+        playAlertBeep(2);
+        releaseScreenWakeLockIfIdle();
+        showToast("⏱️ Descanso entre series terminado", "success");
+      }
+    }
+
+    function startStrengthRest(seconds) {
+      unlockAudioContext();
+      clearInterval(strengthRestInterval);
+      strengthRestRemaining = seconds;
+      strengthRestEndTime = Date.now() + seconds * 1000;
+      requestScreenWakeLock();
+      const display = document.getElementById("strength-rest-display");
+      display.textContent = formatMMSS(strengthRestRemaining);
+      display.className = "font-mono font-black text-lg text-amber-400 px-2 min-w-[64px] text-center";
+
+      strengthRestInterval = setInterval(tickStrengthRest, 250);
+    }
+
+    function stopStrengthRest() {
+      clearInterval(strengthRestInterval);
+      strengthRestEndTime = null;
+      strengthRestRemaining = 90;
+      const display = document.getElementById("strength-rest-display");
+      display.textContent = "01:30";
+      display.className = "font-mono font-black text-lg text-emerald-400 px-2 min-w-[64px] text-center";
+      releaseScreenWakeLockIfIdle();
+    }
+
+    function selectStrengthDay(dayKey) {
+      appState.activeStrengthDay = dayKey;
+      saveState();
+      renderStrengthSection();
+    }
+
+    function getSuggestedDeloadWeight(weightStr) {
+      const match = String(weightStr).match(/(\d+(\.\d+)?)/);
+      if (!match) return null;
+      const num = parseFloat(match[1]);
+      if (isNaN(num) || num <= 0) return null;
+      const reduced = Math.max(5, Math.round((num * 0.7) / 2.5) * 2.5);
+      return String(weightStr).replace(match[1], String(reduced));
+    }
+
+    function ensureExerciseLog(ex) {
+      if (!appState.strengthLogs[ex.id]) {
+        appState.strengthLogs[ex.id] = {
+          weight: ex.defaultWeight,
+          reps: "",
+          done: false,
+          setsDone: Array.from({ length: ex.numSets || 3 }, () => false)
+        };
+      }
+      if (!Array.isArray(appState.strengthLogs[ex.id].setsDone) || appState.strengthLogs[ex.id].setsDone.length !== (ex.numSets || 3)) {
+        const isDone = !!appState.strengthLogs[ex.id].done;
+        appState.strengthLogs[ex.id].setsDone = Array.from({ length: ex.numSets || 3 }, () => isDone);
+      }
+      return appState.strengthLogs[ex.id];
+    }
+
+    function syncRoutineCompletionForWeek() {
+      const dayKey = appState.activeStrengthDay;
+      const routine = STRENGTH_ROUTINES[dayKey];
+      const allDone = routine.exercises.every(ex => appState.strengthLogs[ex.id]?.done);
+      const weekRoutineKey = `w${appState.currentWeek}-${dayKey}`;
+      if (!appState.completedStrengthSessions) appState.completedStrengthSessions = {};
+      if (allDone) {
+        appState.completedStrengthSessions[weekRoutineKey] = true;
+      }
+    }
+
+    function toggleStrengthRoutineWeekDone() {
+      const weekRoutineKey = `w${appState.currentWeek}-${appState.activeStrengthDay}`;
+      if (!appState.completedStrengthSessions) appState.completedStrengthSessions = {};
+      appState.completedStrengthSessions[weekRoutineKey] = !appState.completedStrengthSessions[weekRoutineKey];
+      saveState();
+      renderStrengthSection();
+      renderDashboard();
+      if (appState.completedStrengthSessions[weekRoutineKey]) {
+        showToast(`🏋️‍♂️ Rutina ${appState.activeStrengthDay} registrada en Semana ${appState.currentWeek}`, "success");
+      }
+    }
+
+    function toggleExerciseSet(exId, setIdx) {
+      unlockAudioContext();
+      const routine = STRENGTH_ROUTINES[appState.activeStrengthDay];
+      const ex = routine.exercises.find(item => item.id === exId);
+      if (!ex) return;
+      const log = ensureExerciseLog(ex);
+      log.setsDone[setIdx] = !log.setsDone[setIdx];
+      log.done = log.setsDone.every(Boolean);
+      syncRoutineCompletionForWeek();
+      saveState();
+      renderStrengthSection();
+      renderDashboard();
+
+      if (log.setsDone[setIdx]) {
+        startStrengthRest(90);
+        if (log.done) {
+          showToast(`💪 ¡Todas las series de ${ex.name.split(" ")[0]} completadas! Descanso 90s`, "success");
+        } else {
+          showToast(`Serie ${setIdx + 1} completada • Descanso 90s iniciado`, "success");
+        }
+      }
+    }
+
+    function updateStrengthLog(exId, field, value) {
+      const routine = STRENGTH_ROUTINES[appState.activeStrengthDay];
+      const ex = routine.exercises.find(item => item.id === exId) || { id: exId, defaultWeight: "", numSets: 3 };
+      const log = ensureExerciseLog(ex);
+      log[field] = value;
+      if (field === "done") {
+        log.setsDone = Array.from({ length: ex.numSets || 3 }, () => !!value);
+        syncRoutineCompletionForWeek();
+        saveState();
+        renderStrengthSection();
+        renderDashboard();
+        if (value) {
+          startStrengthRest(90);
+          showToast("💪 Ejercicio completado • Descanso 90s activo", "success");
+        }
+      } else {
+        saveState();
+      }
+    }
+
+    function renderStrengthSection() {
+      const deloadActive = isDeloadAlertActive();
+      const deloadBanner = document.getElementById("strength-deload-banner");
+      if (deloadBanner) {
+        deloadBanner.classList.toggle("hidden", !deloadActive);
+      }
+
+      ["A", "B", "C"].forEach(day => {
+        const btn = document.getElementById(`btn-day-${day}`);
+        const badge = document.getElementById(`badge-day-${day}`);
+        const isActive = appState.activeStrengthDay === day;
+        const isWeekDone = !!appState.completedStrengthSessions?.[`w${appState.currentWeek}-${day}`];
+        if (badge) {
+          badge.textContent = isWeekDone ? "✓ Sem " + appState.currentWeek : "";
+          badge.className = "text-[10px] font-mono font-bold text-emerald-400";
+        }
+        btn.className = `strength-day-btn p-3.5 rounded-2xl border text-left transition ${
+          isActive
+            ? "bg-emerald-500/15 border-emerald-500 text-white shadow-lg shadow-emerald-500/10"
+            : "bg-card border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
+        }`;
+      });
+
+      const routine = STRENGTH_ROUTINES[appState.activeStrengthDay];
+      const container = document.getElementById("strength-exercises-container");
+      const weekRoutineKey = `w${appState.currentWeek}-${appState.activeStrengthDay}`;
+      const isRoutineDoneThisWeek = !!appState.completedStrengthSessions?.[weekRoutineKey];
+
+      container.innerHTML = `
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="font-extrabold text-white text-base">${routine.title}</h3>
+            <p class="text-xs text-slate-400 mt-0.5">${routine.subtitle}</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2.5">
+            <button onclick="toggleStrengthRoutineWeekDone()" class="px-3 py-1.5 rounded-xl text-xs font-extrabold border transition ${
+              isRoutineDoneThisWeek
+                ? "bg-emerald-500 text-slate-950 border-emerald-400"
+                : "bg-slate-800 text-slate-200 border-slate-700 hover:border-emerald-500"
+            }">
+              ${isRoutineDoneThisWeek ? `✓ Completada en Semana ${appState.currentWeek}` : `Marcar Rutina ${appState.activeStrengthDay} en Sem ${appState.currentWeek}`}
+            </button>
+            <button onclick="resetStrengthDayChecks()" class="text-xs font-bold text-slate-400 hover:text-emerald-400 underline">
+              Reiniciar series
+            </button>
+          </div>
+        </div>
+
+        ${routine.exercises.map(ex => {
+          const log = ensureExerciseLog(ex);
+          const deloadWeight = deloadActive ? getSuggestedDeloadWeight(log.weight || ex.defaultWeight) : null;
+          return `
+            <div class="bg-card border ${log.done ? 'border-emerald-500/40 bg-emerald-950/10' : 'border-slate-800'} rounded-2xl p-4 sm:p-5 space-y-3.5 transition">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-start gap-3">
+                  <button onclick="updateStrengthLog('${ex.id}', 'done', ${!log.done})" class="mt-0.5 w-7 h-7 rounded-xl border-2 flex items-center justify-center shrink-0 transition ${
+                    log.done
+                      ? "bg-emerald-500 border-emerald-500 text-slate-950 font-black"
+                      : "border-slate-600 hover:border-emerald-400 text-transparent"
+                  }" aria-label="Completar ejercicio">
+                    ✓
+                  </button>
+                  <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <h4 class="font-extrabold text-sm sm:text-base ${log.done ? 'line-through text-slate-400' : 'text-white'}">${ex.name}</h4>
+                      ${ex.isShoulderFocus ? `<span class="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[10px] font-extrabold uppercase">Foco Hombro</span>` : ""}
+                      ${deloadWeight ? `<span class="px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[10px] font-extrabold">Hoy -30%: ~${escapeHtml(deloadWeight)}</span>` : ""}
+                    </div>
+                    <div class="flex flex-wrap gap-3 text-xs font-semibold text-emerald-400 mt-1">
+                      <span>📊 ${ex.setsReps}</span>
+                      <span class="text-slate-400">⏱️ Tempo: ${ex.tempo}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Botones rápidos por Serie (Estilo Hevy / Strong: toca cada serie al terminar para descanso 90s) -->
+              <div class="flex flex-wrap items-center gap-2 pt-0.5">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-1">Series:</span>
+                ${log.setsDone.map((sDone, sIdx) => `
+                  <button onclick="toggleExerciseSet('${ex.id}', ${sIdx})" class="px-3 py-1.5 rounded-xl text-xs font-extrabold border transition flex items-center gap-1 ${
+                    sDone
+                      ? "bg-emerald-500 text-slate-950 border-emerald-400 shadow-sm"
+                      : "bg-slate-900 text-slate-300 border-slate-700 hover:border-emerald-500/60"
+                  }">
+                    <span>Serie ${sIdx + 1}</span>
+                    <span>${sDone ? "✓" : ""}</span>
+                  </button>
+                `).join("")}
+              </div>
+
+              <!-- Nota Biomecánica 60+ -->
+              <div class="bg-slate-900/90 border border-slate-800/90 rounded-xl p-3 text-xs text-slate-300 leading-relaxed">
+                <strong class="text-emerald-400">Seguridad Articular 60+:</strong> ${ex.safetyNote}
+              </div>
+
+              <!-- Inputs Editables de Peso y Repeticiones -->
+              <div class="grid grid-cols-2 gap-3 pt-1">
+                <div>
+                  <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Peso Usado (lbs/kg)</label>
+                  <input
+                    type="text"
+                    value="${escapeHtml(log.weight)}"
+                    onchange="updateStrengthLog('${ex.id}', 'weight', this.value)"
+                    placeholder="${ex.defaultWeight}"
+                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm font-mono font-bold text-white focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Reps Logradas por Serie</label>
+                  <input
+                    type="text"
+                    value="${escapeHtml(log.reps)}"
+                    onchange="updateStrengthLog('${ex.id}', 'reps', this.value)"
+                    placeholder="Ej: 12, 12, 11"
+                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm font-mono text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("")}
+      `;
+    }
+
+    function resetStrengthDayChecks() {
+      const routine = STRENGTH_ROUTINES[appState.activeStrengthDay];
+      routine.exercises.forEach(ex => {
+        if (appState.strengthLogs[ex.id]) {
+          appState.strengthLogs[ex.id].done = false;
+          appState.strengthLogs[ex.id].setsDone = Array.from({ length: ex.numSets || 3 }, () => false);
+        }
+      });
+      saveState();
+      renderStrengthSection();
+      showToast(`Series de Rutina ${appState.activeStrengthDay} reiniciadas`, "success");
+    }
+
+    // ===========================================================
+    // 9. PESTAÑA 4: CHECKLIST PRE-ENTRENAMIENTO
+    // ===========================================================
+    function togglePreCheck(itemId) {
+      appState.preChecklist[itemId] = !appState.preChecklist[itemId];
+      saveState();
+      renderPreChecklist();
+    }
+
+    function resetPreChecklist() {
+      appState.preChecklist = {};
+      saveState();
+      renderPreChecklist();
+      showToast("Checklist pre-entrenamiento reiniciado", "success");
+    }
+
+    function renderPreChecklist() {
+      const container = document.getElementById("pre-workout-checklist");
+      container.innerHTML = PRE_WORKOUT_ITEMS.map(item => {
+        const checked = !!appState.preChecklist[item.id];
+        return `
+          <button onclick="togglePreCheck('${item.id}')" class="p-3 rounded-xl border text-left flex items-center gap-3 transition ${
+            checked
+              ? "bg-emerald-500/20 border-emerald-500/60 text-white"
+              : "bg-slate-950/70 border-slate-800 text-slate-300 hover:border-slate-700"
+          }">
+            <span class="w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 text-xs font-black ${
+              checked ? "bg-emerald-500 border-emerald-500 text-slate-950" : "border-slate-600 text-transparent"
+            }">✓</span>
+            <span class="text-xs sm:text-sm font-semibold ${checked ? 'line-through text-slate-400' : ''}">${item.text}</span>
+          </button>
+        `;
+      }).join("");
+    }
+
+    // ===========================================================
+    // 10. EXPORTAR E IMPORTAR RESPALDO JSON
+    // ===========================================================
+    function exportBackup() {
+      try {
+        const dataStr = JSON.stringify(appState, null, 2);
+        const blob = new Blob([dataStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        const dateTag = new Date().toISOString().slice(0, 10);
+        a.href = url;
+        a.download = `ruta-5m-fuerza-60-respaldo-${dateTag}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast("📥 Respaldo JSON descargado correctamente", "success");
+      } catch (e) {
+        showToast("Error al exportar respaldo JSON", "danger");
+      }
+    }
+
+    function importBackup(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (!imported || typeof imported !== "object" || !imported.currentWeek) {
+            throw new Error("Formato inválido");
+          }
+          openConfirmModal(
+            "Restaurar respaldo JSON",
+            "Se reemplazarán los datos actuales con los del archivo seleccionado. ¿Deseas continuar?",
+            () => {
+              appState = {
+                ...JSON.parse(JSON.stringify(DEFAULT_STATE)),
+                ...imported
+              };
+              saveState();
+              initApp();
+              showToast("✅ Datos restaurados desde el archivo JSON", "success");
+            }
+          );
+        } catch (err) {
+          showToast("❌ El archivo JSON no es válido para Ruta 5M", "danger");
+        } finally {
+          event.target.value = "";
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // ===========================================================
+    // 11. AUTENTICACIÓN SENCILLA, VISIBILIDAD & INICIALIZACIÓN
+    // ===========================================================
+    const AUTH_KEY = "ruta5m_auth_v1";
+    const VALID_USER = "gerardo";
+    const VALID_PASS = "5m60";
+
+    function checkAuthSession() {
+      const overlay = document.getElementById("auth-overlay");
+      if (!overlay) return;
+      const isAuthed = localStorage.getItem(AUTH_KEY) === "1" || sessionStorage.getItem(AUTH_KEY) === "1";
+      overlay.classList.toggle("hidden", isAuthed);
+      if (!isAuthed) {
+        document.getElementById("login-user")?.focus();
+      }
+    }
+
+    function lockSession() {
+      localStorage.removeItem(AUTH_KEY);
+      sessionStorage.removeItem(AUTH_KEY);
+      document.getElementById("login-pass").value = "";
+      checkAuthSession();
+      showToast("🔒 Sesión bloqueada", "warning");
+    }
+
+    document.getElementById("login-form")?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const user = (document.getElementById("login-user").value || "").trim().toLowerCase();
+      const pass = (document.getElementById("login-pass").value || "").trim();
+      const remember = document.getElementById("login-remember").checked;
+      const errEl = document.getElementById("login-error");
+
+      if (user === VALID_USER && pass.toLowerCase() === VALID_PASS) {
+        errEl.classList.add("hidden");
+        if (remember) {
+          localStorage.setItem(AUTH_KEY, "1");
+        } else {
+          sessionStorage.setItem(AUTH_KEY, "1");
+        }
+        unlockAudioContext();
+        checkAuthSession();
+        showToast("👋 ¡Bienvenido, Gerardo! Listo para entrenar", "success");
+      } else {
+        errEl.classList.remove("hidden");
+      }
+    });
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    // Cuando el usuario vuelve a abrir el iPhone / Safari tras bloquear pantalla, actualiza de inmediato los cronómetros
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        if (sprintTimerRunning) tickSprintRestTimer();
+        if (liveSprintRunning) updateSprintTimerUI();
+        if (strengthRestEndTime) tickStrengthRest();
+        if (sprintTimerRunning || liveSprintRunning || strengthRestEndTime) {
+          requestScreenWakeLock();
+        }
+      }
+    });
+
+    function initApp() {
+      checkAuthSession();
+      document.getElementById("global-week-select").value = String(appState.currentWeek);
+      syncSlidersFromLatestWellness();
+      switchTab(appState.activeTab || "dashboard");
+      renderDashboard();
+      updateSprintTimerUI();
+      renderSprintGrid();
+      renderRunningPlan();
+      renderStrengthSection();
+      renderPreChecklist();
+    }
+
+    window.addEventListener("DOMContentLoaded", initApp);
+  </script>
+</body>
+</html>
